@@ -110,4 +110,7 @@ bool Mutex::give() {
     return xSemaphoreGive(mutex.get());
 }
 
+Semaphore::Semaphore(uint32_t max_count, uint32_t init_count) :
+    mutex(xQueueCreateCountingSemaphore(max_count, init_count), [](SemaphoreHandle_t mutex) { vSemaphoreDelete(mutex); }){};
+
 } // namespace wrvcu
