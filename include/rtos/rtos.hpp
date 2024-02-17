@@ -1,9 +1,11 @@
 #pragma once
 
 #include "arduino_freertos.h"
+#include "rtos/queue.hpp"
 #include "semphr.h"
 #include <cstdint>
 #include <memory>
+
 
 // Lots of inspiration taken from https://github.com/purduesigbots/pros
 // Modified from https://github.com/purduesigbots/pros/blob/develop/src/rtos/rtos.cpp
@@ -306,56 +308,6 @@ public:
      * \return True if the mutex was successfully taken, false otherwise.
      */
     bool take(std::uint32_t timeout);
-};
-
-class Queue {
-public:
-    Queue(uint32_t length, uint32_t item_size);
-
-    /**
-     * Posts an item to the end of a queue. The item is queued by copy, not by reference.
-     * \param item
-     *      A pointer to the item that will be placed on the queue.
-     * \param timeout
-     *      Time to wait for space to become available. A timeout of 0 can be used to attempt to post without blocking. TIMEOUT_MAX can be used to block indefinitely.
-     *
-     * \return true if the item was enqueued, false otherwise
-     */
-    bool enqueue(const void* item, uint32_t timeout);
-
-    /**
-     * Posts an item to the front of a queue. The item is queued by copy, not by reference.
-     * \param item
-     *      A pointer to the item that will be placed on the queue.
-     * \param timeout
-     *      Time to wait for space to become available. A timeout of 0 can be used to attempt to post without blocking. TIMEOUT_MAX can be used to block indefinitely.
-     *
-     * \return true if the item was enqueued, false otherwise
-     */
-    bool prepend(const void* item, uint32_t timeout);
-
-    /**
-     * Get an item from a queue without removing the item from the queue.
-     * \param timeout
-     *      Time to wait for space to become available. A timeout of 0 can be used to attempt to post without blocking. TIMEOUT_MAX can be used to block indefinitely.
-     *
-     * \return pointer to the received item
-     */
-    void* peek(uint32_t timeout);
-
-    /**
-     * Get an item from the queue.
-     * \param timeout
-     *      Time to wait for space to become available. A timeout of 0 can be used to attempt to post without blocking. TIMEOUT_MAX can be used to block indefinitely.
-     *
-     * \return pointer to the received item
-     */
-    void* dequeue(uint32_t timeout);
-
-    uint32_t get_spaces();
-    uint32_t size();
-
-    void reset();
 };
 
 class Semaphore {

@@ -5,7 +5,7 @@ namespace wrvcu {
 // Most of this code is just a wrapper around FreeRTOS functions
 
 void startScheduler() {
-    Serial.printf("Booting FreeRTOS kernel %s.", tskKERNEL_VERSION_NUMBER);
+    Serial.printf("Booting FreeRTOS kernel %s\n", tskKERNEL_VERSION_NUMBER);
     vTaskStartScheduler();
 };
 
@@ -74,7 +74,7 @@ void Task::notify() {
 // }
 
 std::uint32_t Task::notify_take(bool clear_on_exit, std::uint32_t timeout) {
-    return ulTaskNotifyTake(clear_on_exit, timeout);
+    return ulTaskNotifyTake(clear_on_exit, pdMS_TO_TICKS(timeout));
 }
 
 void Task::notify_clear() {
@@ -103,7 +103,7 @@ bool Mutex::take() {
 }
 
 bool Mutex::take(std::uint32_t timeout) {
-    return xSemaphoreTake(mutex.get(), timeout);
+    return xSemaphoreTake(mutex.get(), pdMS_TO_TICKS(timeout));
 }
 
 bool Mutex::give() {
@@ -111,6 +111,18 @@ bool Mutex::give() {
 }
 
 Semaphore::Semaphore(uint32_t max_count, uint32_t init_count) :
-    mutex(xQueueCreateCountingSemaphore(max_count, init_count), [](SemaphoreHandle_t mutex) { vSemaphoreDelete(mutex); }){};
+    sem(xQueueCreateCountingSemaphore(max_count, init_count), [](SemaphoreHandle_t sem) { vSemaphoreDelete(sem); }){};
+
+uint32_t Semaphore::get_count() {
+    return uxSemaphoreGetCount(sem.get());
+}
+
+bool Semaphore::post() {
+    return xSemaphoreGive(sem.get()) == pdTRUE;
+}
+
+bool Semaphore::wait(uint32_t timeout) {
+    return xSemaphoreTake(sem.get(), pdMS_TO_TICKS(timeout));
+}
 
 } // namespace wrvcu
