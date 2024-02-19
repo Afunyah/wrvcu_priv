@@ -4,15 +4,14 @@
 // Modified from https://github.com/purduesigbots/pros/blob/develop/src/rtos/rtos.cpp
 
 // The highest priority that can be assigned to a task. Beware of deadlock.
-#define TASK_PRIORITY_MAX 16
+#define TASK_PRIORITY_MAX configMAX_TASK_NAME_LEN
 
 // The lowest priority that can be assigned to a task.
 // This may cause severe performance problems and is generally not recommended.
 #define TASK_PRIORITY_MIN 1
 
 // The default task priority, which should be used for most tasks.
-// Default tasks such as autonomous() inherit this priority.
-#define TASK_PRIORITY_DEFAULT 8
+#define TASK_PRIORITY_DEFAULT 5
 
 // The recommended stack size for a new task. This equates to 32,768 bytes
 #define TASK_STACK_DEPTH_DEFAULT 0x2000

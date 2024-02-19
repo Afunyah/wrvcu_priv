@@ -204,6 +204,13 @@ public:
     static void delay_until(std::uint32_t* const prev_time, const std::uint32_t delta);
 
     /**
+     * @brief Get the time elapsed since the scheduler started in millis.
+     *
+     * @return uint32_t Milliseconds elapsed since the scheduler started.
+     */
+    static uint32_t millis();
+
+    /**
      * Gets the priority of the specified task.
      *
      * \return The priority of the task

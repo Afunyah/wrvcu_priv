@@ -27,6 +27,11 @@ void task2() {
         a_mutex.take();
         printf("a count: %d\n", a);
         a_mutex.give();
+
+        char buffer[48 * 10];
+        vTaskGetRunTimeStats((char*)&buffer);
+        printf("%.*s\n", 480, buffer);
+
         Task::delay(1000);
     }
 }
@@ -93,14 +98,14 @@ void test_rtos() {
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, LOW);
 
-    Task(task1, "task1");
-    Task(task2, "task2");
-    Task(task3, "task3");
-    Task(task4, "task4");
-    Task(task5, "task5");
-    Task(task6, "task6");
-    Task(task7, "task7");
-    Task(task8, "task8");
+    Task(task1, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "task1");
+    Task(task2, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "task2");
+    Task(task3, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "task3");
+    Task(task4, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "task4");
+    Task(task5, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "task5");
+    Task(task6, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "task6");
+    Task(task7, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "task7");
+    Task(task8, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "task8");
 
     startScheduler();
 }

@@ -82,6 +82,10 @@ void Task::delay_until(std::uint32_t* const prev_time, const std::uint32_t delta
     vTaskDelayUntil(prev_time, pdMS_TO_TICKS(delta));
 }
 
+uint32_t Task::millis() {
+    return pdTICKS_TO_MS(xTaskGetTickCount());
+}
+
 // std::uint32_t Task::get_count() {
 //     return task_get_count();
 // }
