@@ -10,7 +10,7 @@ class Queue {
     std::shared_ptr<std::remove_pointer_t<QueueHandle_t>> queue;
 
 public:
-    Queue(uint32_t length) :
+    Queue(uint32_t length) : // cppcheck-suppress misra-c2012-2.7; (False positive for unused parameter)
         queue(xQueueCreate(length, sizeof(T)), [](QueueHandle_t queue) { vQueueDelete(queue); }){};
 
     /**

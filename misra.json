@@ -2,6 +2,6 @@
     "script": "misra.py",
     "args": [
         "--rule-texts=misra.txt",
-        "--suppress-rules 8.2"
+        "--suppress-rules 8.2,17.7"
     ]
 }

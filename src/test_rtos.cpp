@@ -13,8 +13,8 @@ void task1() {
     }
 }
 
-int a = 0;
-Mutex a_mutex;
+static int a = 0;
+static Mutex a_mutex;
 
 void task2() {
     while (true) {
@@ -54,7 +54,7 @@ void task4() {
     }
 }
 
-Semaphore sem(32, 0);
+static Semaphore sem(32, 0);
 
 void task5() {
     while (true) {
@@ -66,13 +66,12 @@ void task5() {
 void task6() {
     while (true) {
         printf("Semaphore count: %d\n", (int)sem.get_count());
-        while (sem.wait(0))
-            ;
+        while (sem.wait(0)) {};
         Task::delay(1000);
     }
 }
 
-Queue<int> queue(32);
+static Queue<int> queue(32);
 
 void task7() {
     int i = 0;
@@ -86,7 +85,7 @@ void task7() {
 void task8() {
     while (true) {
         printf("Queue size: %d\n", (int)queue.size());
-        while (queue.size() > 0) {
+        while (queue.size() > 0u) {
             int i = queue.dequeue(0);
             printf("item: %d\n", i);
         }

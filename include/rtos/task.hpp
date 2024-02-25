@@ -86,9 +86,9 @@ public:
      *
      */
     template <class F>
-    Task(F&& function, uint32_t prio, uint16_t stack_depth, const char* name) :
-        // Wizardry from https://github.com/purduesigbots/pros/blob/1e7513d4f110d2eac625b6300dbbb8c086ab6c0c/include/pros/rtos.hpp#L107
-        Task( // Create task with a lambda that executes a function given through a parameter.
+    Task(F&& function, uint32_t prio, uint16_t stack_depth, const char* name) : // cppcheck-suppress[misra-c2012-10.4,misra-c2012-2.7]; (False positive for unused parameter and arithemtic stuff)
+                                                                                // Wizardry from https://github.com/purduesigbots/pros/blob/1e7513d4f110d2eac625b6300dbbb8c086ab6c0c/include/pros/rtos.hpp#L107
+        Task(                                                                   // Create task with a lambda that executes a function given through a parameter.
             [](void* parameters) {
                 std::unique_ptr<std::function<void()>> ptr{ static_cast<std::function<void()>*>(parameters) };
                 (*ptr)();
@@ -112,7 +112,7 @@ public:
      *
      */
     template <class F>
-    Task(F&& function, const char* name) :
+    Task(F&& function, const char* name) : // cppcheck-suppress misra-c2012-2.7; (False positive for unused parameter)
         Task(std::forward<F>(function), TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, name){};
 
     /**

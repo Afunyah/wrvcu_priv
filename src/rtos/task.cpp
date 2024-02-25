@@ -12,13 +12,17 @@ Task::Task(task_fn_t function, void* parameters, std::uint32_t prio, std::uint16
     if (res == pdPASS) {
     } // OK
     else if (res == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) {
-    }; // TODO: log an error
+    } // TODO: log an error
+    else {
+        // No other result possible
+    };
 }
 
-Task::Task(task_fn_t function, void* parameters, const char* name) :
-    Task(function, parameters, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, name) {}
+Task::Task(task_fn_t function, void* parameters, const char* name) : // cppcheck-suppress misra-c2012-2.7; (False positive for unused parameter)
+    Task(function, parameters, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, name) {
+}
 
-Task::Task(TaskHandle_t task) :
+Task::Task(TaskHandle_t task) : // cppcheck-suppress misra-c2012-2.7; (False positive for unused parameter)
     task(task){};
 
 Task Task::current() {
