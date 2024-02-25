@@ -71,7 +71,7 @@ void task6() {
     }
 }
 
-static Queue<int> queue(32);
+static Queue<int, 32> queue;
 
 void task7() {
     int i = 0;
@@ -93,18 +93,19 @@ void task8() {
     }
 }
 
+static Task taskA(task1, TASK_PRIORITY_DEFAULT, "task1");
+static Task taskB(task2, TASK_PRIORITY_DEFAULT, "task2");
+static Task taskC(task3, TASK_PRIORITY_DEFAULT, "task3");
+static Task taskD(task4, TASK_PRIORITY_DEFAULT, "task4");
+static Task taskE(task5, TASK_PRIORITY_DEFAULT, "task5");
+static Task taskF(task6, TASK_PRIORITY_DEFAULT, "task6");
+static Task taskG(task7, TASK_PRIORITY_DEFAULT, "task7");
+static Task taskH(task8, TASK_PRIORITY_DEFAULT, "task8");
+
 void test_rtos() {
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, LOW);
 
-    Task(task1, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "task1");
-    Task(task2, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "task2");
-    Task(task3, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "task3");
-    Task(task4, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "task4");
-    Task(task5, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "task5");
-    Task(task6, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "task6");
-    Task(task7, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "task7");
-    Task(task8, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "task8");
     // Task(task8, TASK_PRIORITY_MAX+5, TASK_STACK_DEPTH_DEFAULT, "task8"); // intentionally crash
 
     // intentionally crash

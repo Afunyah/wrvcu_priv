@@ -5,8 +5,13 @@
 
 namespace wrvcu {
 
+/**
+ * @brief A tool for implementing mutual exclusion on a resource. This is allocated statically, so MUST be in global scope. This MUST NOT be created inside a function.
+ *
+ */
 class Mutex {
     std::shared_ptr<std::remove_pointer_t<SemaphoreHandle_t>> mutex;
+    StaticSemaphore_t mutexBuffer;
 
 public:
     Mutex();

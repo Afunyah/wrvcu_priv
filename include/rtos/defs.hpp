@@ -13,8 +13,8 @@
 // The default task priority, which should be used for most tasks.
 #define TASK_PRIORITY_DEFAULT 5
 
-// The recommended stack size for a new task. This equates to 32,768 bytes
-#define TASK_STACK_DEPTH_DEFAULT 0x2000
+// The recommended stack size for a new task. This equates to 8192 bytes
+#define TASK_STACK_DEPTH_DEFAULT 0x800
 
 // The minimal stack size for a task. This equates to 2048 bytes
 #define TASK_STACK_DEPTH_MIN 0x200
@@ -32,6 +32,19 @@ namespace wrvcu {
 typedef void* task_t;
 typedef void (*task_fn_t)(void*);
 
+/**
+ * @brief Starts the RTOS scheduler
+ *
+ */
 void startScheduler();
+
+/**
+ * @brief Checks whether a pointer is on the stack.
+ *
+ * @param ptr The pointer to check.
+ * @return true The pointer is on the stack.
+ * @return false The pointer is not on the stack.
+ */
+bool isOnStack(void* ptr);
 
 } // namespace wrvcu

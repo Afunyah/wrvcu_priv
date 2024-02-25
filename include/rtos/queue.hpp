@@ -5,13 +5,22 @@
 
 namespace wrvcu {
 
-template <typename T>
+/**
+ * @brief A thread-safe queue. This is allocated statically, so MUST be in global scope. This MUST NOT be created inside a function.
+ * Used to safely pass messages between threads, and the primary form of intertask communication.
+ *
+ * @tparam T The type of the queue items
+ * @tparam LEN The length of the queue
+ */
+template <typename T, int LEN>
 class Queue {
     std::shared_ptr<std::remove_pointer_t<QueueHandle_t>> queue;
+    StaticQueue_t staticQueue;
+    uint8_t queueStorageArea[LEN * sizeof(T)];
 
 public:
-    Queue(uint32_t length) : // cppcheck-suppress misra-c2012-2.7; (False positive for unused parameter)
-        queue(xQueueCreate(length, sizeof(T)), [](QueueHandle_t queue) { vQueueDelete(queue); }){};
+    Queue() : // cppcheck-suppress misra-c2012-2.7; (False positive for unused parameter)
+        queue(xQueueCreateStatic(LEN, sizeof(T), queueStorageArea, &staticQueue), [](QueueHandle_t queue) { vQueueDelete(queue); }){};
 
     /**
      * Posts an item to the end of a queue. The item is queued by copy, not by reference.

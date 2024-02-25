@@ -2,24 +2,26 @@
 
 namespace wrvcu {
 
-Task::Task(task_fn_t function, void* parameters, std::uint32_t prio, std::uint16_t stack_depth, const char* name) {
-    // TODO: Use xTaskCreateStatic to statically allocate stack
+Task::Task(task_fn_t function, void* parameters, std::uint32_t prio, const char* name) {
+    if (isOnStack((void*)this)) {
+        printf("WARNING: Static task %s allocated on the stack! This WILL cause severe problems.\n", name);
+        // configASSERT(0); // assert error
+    } else { /* ok*/
+    };
 
+    int stack_depth = sizeof(stack) / sizeof(stack[0]);
     // create the task
-    BaseType_t res = xTaskCreate(function, name, stack_depth, parameters, prio, &task);
+    task = xTaskCreateStatic(function, name, stack_depth, parameters, prio, stack, &taskBuffer);
 
-    // Check that task was sucessfully created
-    if (res == pdPASS) {
-    } // OK
-    else if (res == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) {
-    } // TODO: log an error
-    else {
-        // No other result possible
+    if (task == NULL) {
+        printf("Task %s was not created!\n", name);
+        configASSERT(task);
+    } else { // ok
     };
 }
 
 Task::Task(task_fn_t function, void* parameters, const char* name) : // cppcheck-suppress misra-c2012-2.7; (False positive for unused parameter)
-    Task(function, parameters, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, name) {
+    Task(function, parameters, TASK_PRIORITY_DEFAULT, name) {
 }
 
 Task::Task(TaskHandle_t task) : // cppcheck-suppress misra-c2012-2.7; (False positive for unused parameter)

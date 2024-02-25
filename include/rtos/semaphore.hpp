@@ -5,8 +5,13 @@
 
 namespace wrvcu {
 
+/**
+ * @brief A counting sempahore, for counting events, or for resource management.This is allocated statically, so MUST be in global scope. This MUST NOT be created inside a function.
+ *
+ */
 class Semaphore {
     std::shared_ptr<std::remove_pointer_t<SemaphoreHandle_t>> sem;
+    StaticSemaphore_t semBuffer;
 
 public:
     Semaphore(uint32_t max_count, uint32_t init_count);
