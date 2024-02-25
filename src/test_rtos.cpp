@@ -106,6 +106,13 @@ void test_rtos() {
     Task(task6, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "task6");
     Task(task7, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "task7");
     Task(task8, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "task8");
+    // Task(task8, TASK_PRIORITY_MAX+5, TASK_STACK_DEPTH_DEFAULT, "task8"); // intentionally crash
+
+    // intentionally crash
+    /*
+    int a = *((int*)0);
+    printf("crash %d\n", a);
+    */
 
     startScheduler();
 }
