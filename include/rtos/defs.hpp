@@ -16,8 +16,8 @@
 // The recommended stack size for a new task. This equates to 8192 bytes
 #define TASK_STACK_DEPTH_DEFAULT 0x800
 
-// The minimal stack size for a task. This equates to 2048 bytes
-#define TASK_STACK_DEPTH_MIN 0x200
+// The minimal stack size for a task.
+#define TASK_STACK_DEPTH_MIN configMINIMAL_STACK_SIZE
 
 // The maximum number of characters allowed in a task's name.
 // #define TASK_NAME_MAX_LEN 32

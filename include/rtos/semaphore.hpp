@@ -10,11 +10,17 @@ namespace wrvcu {
  *
  */
 class Semaphore {
-    std::shared_ptr<std::remove_pointer_t<SemaphoreHandle_t>> sem;
+    SemaphoreHandle_t sem;
     StaticSemaphore_t semBuffer;
 
 public:
-    Semaphore(uint32_t max_count, uint32_t init_count);
+    Semaphore() = default;
+
+    /**
+     * @brief Checks if the mutex is initialised, and if not, initialise the mutex.
+     *
+     */
+    void init(uint32_t max_count, uint32_t init_count);
 
     /**
      * Returns the current value of the semaphore.

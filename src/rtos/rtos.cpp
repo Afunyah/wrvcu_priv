@@ -1,6 +1,7 @@
 #include "rtos/rtos.hpp"
 
-extern unsigned long _estack; // stack top
+// extern unsigned long _estack; // stack top
+extern unsigned long _ebss; // end of BSS
 
 namespace wrvcu {
 
@@ -13,6 +14,16 @@ void startScheduler() {
     Serial.flush();
 };
 
+/**
+ * @brief Check whether a pointer is on the stack.
+ *
+ * This works by comparing the memory location to the location of the end of BSS. On the Teensy 4.1,
+ * anything above this location is the stack, and anything below is fine.
+ *
+ * @param ptr
+ * @return true
+ * @return false
+ */
 bool isOnStack(void* ptr) {
     /* MISRA deviation:
      * 11.4 and 11.6 are suppressed here, since a cast from pointers to ints is required here for the comparison.
@@ -21,7 +32,7 @@ bool isOnStack(void* ptr) {
      */
     // cppcheck-suppress  misra-c2012-11.4
     // cppcheck-suppress  misra-c2012-11.6
-    return ((long)ptr) < ((long)(&_estack));
+    return ((unsigned long)ptr) > ((unsigned long)(&_ebss));
 }
 
 } // namespace wrvcu

@@ -10,11 +10,17 @@ namespace wrvcu {
  *
  */
 class Mutex {
-    std::shared_ptr<std::remove_pointer_t<SemaphoreHandle_t>> mutex;
+    SemaphoreHandle_t mutex;
     StaticSemaphore_t mutexBuffer;
 
 public:
-    Mutex();
+    Mutex() = default;
+
+    /**
+     * @brief Checks if the mutex is initialised, and if not, initialise the mutex.
+     *
+     */
+    void init();
 
     /**
      * Unlocks a mutex.

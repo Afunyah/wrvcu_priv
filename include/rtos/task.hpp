@@ -13,50 +13,7 @@ namespace wrvcu {
  */
 class Task {
 public:
-    /**
-     * Creates a new task and add it to the list of tasks that are ready to run.
-     *
-     * This function uses the following values of errno when an error state is
-     * reached:
-     * ENOMEM - The stack cannot be used as the TCB was not created.
-     *
-     * \param function
-     *        Pointer to the task entry function
-     * \param parameters
-     *        Pointer to memory that will be used as a parameter for the task
-     *        being created. This memory should not typically come from stack,
-     *        but rather from dynamically (i.e., malloc'd) or statically
-     *        allocated memory.
-     * \param prio
-     *        The priority at which the task should run.
-     *        TASK_PRIO_DEFAULT plus/minus 1 or 2 is typically used.
-     * \param name
-     *        A descriptive name for the task.  This is mainly used to facilitate
-     *        debugging. The name may be up to 32 characters long.
-     *
-     */
-    Task(task_fn_t function, void* parameters, uint32_t prio, const char* name);
-
-    /**
-     * Creates a new task and add it to the list of tasks that are ready to run.
-     *
-     * This function uses the following values of errno when an error state is
-     * reached:
-     * ENOMEM - The stack cannot be used as the TCB was not created.
-     *
-     * \param function
-     *        Pointer to the task entry function
-     * \param parameters
-     *        Pointer to memory that will be used as a parameter for the task
-     *        being created. This memory should not typically come from stack,
-     *        but rather from dynamically (i.e., malloc'd) or statically
-     *        allocated memory.
-     * \param name
-     *        A descriptive name for the task.  This is mainly used to facilitate
-     *        debugging. The name may be up to 32 characters long.
-     *
-     */
-    Task(task_fn_t function, void* parameters, const char* name);
+    Task() = default;
 
     /**
      * Create a C++ task object from a task handle
@@ -75,6 +32,51 @@ public:
      * ENOMEM - The stack cannot be used as the TCB was not created.
      *
      * \param function
+     *        Pointer to the task entry function
+     * \param parameters
+     *        Pointer to memory that will be used as a parameter for the task
+     *        being created. This memory should not typically come from stack,
+     *        but rather from dynamically (i.e., malloc'd) or statically
+     *        allocated memory.
+     * \param prio
+     *        The priority at which the task should run.
+     *        TASK_PRIO_DEFAULT plus/minus 1 or 2 is typically used.
+     * \param name
+     *        A descriptive name for the task.  This is mainly used to facilitate
+     *        debugging. The name may be up to 32 characters long.
+     *
+     */
+    void start(task_fn_t function, void* parameters, uint32_t prio, const char* name);
+
+    /**
+     * Creates a new task and add it to the list of tasks that are ready to run.
+     *
+     * This function uses the following values of errno when an error state is
+     * reached:
+     * ENOMEM - The stack cannot be used as the TCB was not created.
+     *
+     * \param function
+     *        Pointer to the task entry function
+     * \param parameters
+     *        Pointer to memory that will be used as a parameter for the task
+     *        being created. This memory should not typically come from stack,
+     *        but rather from dynamically (i.e., malloc'd) or statically
+     *        allocated memory.
+     * \param name
+     *        A descriptive name for the task.  This is mainly used to facilitate
+     *        debugging. The name may be up to 32 characters long.
+     *
+     */
+    void start(task_fn_t function, void* parameters, const char* name);
+
+    /**
+     * Creates a new task and add it to the list of tasks that are ready to run.
+     *
+     * This function uses the following values of errno when an error state is
+     * reached:
+     * ENOMEM - The stack cannot be used as the TCB was not created.
+     *
+     * \param function
      *        Callable object to use as entry function
      * \param prio
      *        The priority at which the task should run.
@@ -85,15 +87,16 @@ public:
      *
      */
     template <class F>
-    Task(F&& function, uint32_t prio, const char* name) : // cppcheck-suppress[misra-c2012-10.4,misra-c2012-2.7]; (False positive for unused parameter and arithemtic stuff)
-                                                          // Wizardry from https://github.com/purduesigbots/pros/blob/1e7513d4f110d2eac625b6300dbbb8c086ab6c0c/include/pros/rtos.hpp#L107
-        Task(                                             // Create task with a lambda that executes a function given through a parameter.
+    void start(F&& function, uint32_t prio, const char* name) {
+        // Wizardry from https://github.com/purduesigbots/pros/blob/1e7513d4f110d2eac625b6300dbbb8c086ab6c0c/include/pros/rtos.hpp#L107
+        static_assert(std::is_invocable_r_v<void, F>);
+
+        start( // Create task with a lambda that executes a function given through a parameter.
             [](void* parameters) {
                 std::unique_ptr<std::function<void()>> ptr{ static_cast<std::function<void()>*>(parameters) };
                 (*ptr)();
             },
-            new std::function<void()>(std::forward<F>(function)), prio, name) {
-        static_assert(std::is_invocable_r_v<void, F>);
+            new std::function<void()>(std::forward<F>(function)), prio, name);
     }
 
     /**
@@ -111,8 +114,9 @@ public:
      *
      */
     template <class F>
-    Task(F&& function, const char* name) : // cppcheck-suppress misra-c2012-2.7; (False positive for unused parameter)
-        Task(std::forward<F>(function), TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, name){};
+    void start(F&& function, const char* name) {
+        start(std::forward<F>(function), TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, name);
+    };
 
     /**
      * Sends a simple notification to task and increments the notification

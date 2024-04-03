@@ -2,11 +2,11 @@
 
 namespace wrvcu {
 
-Task::Task(task_fn_t function, void* parameters, std::uint32_t prio, const char* name) {
-    if (isOnStack((void*)this)) {
+void Task::start(task_fn_t function, void* parameters, std::uint32_t prio, const char* name) {
+    if (isOnStack((void*)&taskBuffer)) {
         printf("WARNING: Static task %s allocated on the stack! This WILL cause severe problems.\n", name);
-        // configASSERT(0); // assert error
-    } else { /* ok*/
+        configASSERT(0); // assert error
+    } else {             /* ok*/
     };
 
     int stack_depth = sizeof(stack) / sizeof(stack[0]);
@@ -20,8 +20,8 @@ Task::Task(task_fn_t function, void* parameters, std::uint32_t prio, const char*
     };
 }
 
-Task::Task(task_fn_t function, void* parameters, const char* name) : // cppcheck-suppress misra-c2012-2.7; (False positive for unused parameter)
-    Task(function, parameters, TASK_PRIORITY_DEFAULT, name) {
+void Task::start(task_fn_t function, void* parameters, const char* name) {
+    start(function, parameters, TASK_PRIORITY_DEFAULT, name);
 }
 
 Task::Task(TaskHandle_t task) : // cppcheck-suppress misra-c2012-2.7; (False positive for unused parameter)

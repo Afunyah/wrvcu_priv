@@ -13,7 +13,16 @@ void setup() {
         Serial.flush();
     }
 
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, HIGH);
+
     test_rtos();
 }
 
-void loop() {}
+void loop() {
+    // digitalWrite(LED_BUILTIN, HIGH);
+    // delay(500);
+
+    // digitalWrite(LED_BUILTIN, LOW);
+    // delay(500);
+}
