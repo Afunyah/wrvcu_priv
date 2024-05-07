@@ -10,14 +10,14 @@ namespace wrvcu {
  *
  */
 class Semaphore {
-    SemaphoreHandle_t sem;
+    SemaphoreHandle_t sem = NULL;
     StaticSemaphore_t semBuffer;
 
 public:
     Semaphore() = default;
 
     /**
-     * @brief Checks if the mutex is initialised, and if not, initialise the mutex.
+     * @brief Initialise the semaphore. This must be done before using it.
      *
      */
     void init(uint32_t max_count, uint32_t init_count);

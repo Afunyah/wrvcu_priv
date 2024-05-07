@@ -11,8 +11,8 @@ void Semaphore::init(uint32_t max_count, uint32_t init_count) {
         /* ok*/
     };
 
-    if (sem == NULL)
-        sem = xQueueCreateCountingSemaphoreStatic(max_count, init_count, &semBuffer);
+    // if (sem == NULL)
+    sem = xQueueCreateCountingSemaphoreStatic(max_count, init_count, &semBuffer);
 
     if (sem == NULL) {
         printf("Mutex was not created!\n");
@@ -26,11 +26,11 @@ uint32_t Semaphore::get_count() {
 }
 
 bool Semaphore::post() {
-    return xSemaphoreGive(sem.get()) == pdTRUE;
+    return xSemaphoreGive(sem) == pdTRUE;
 }
 
 bool Semaphore::wait(uint32_t timeout) {
-    return xSemaphoreTake(sem.get(), pdMS_TO_TICKS(timeout));
+    return xSemaphoreTake(sem, pdMS_TO_TICKS(timeout));
 }
 
 } // namespace wrvcu
