@@ -14,13 +14,33 @@ namespace wrvcu {
  */
 template <typename T, int LEN>
 class Queue {
-    std::shared_ptr<std::remove_pointer_t<QueueHandle_t>> queue;
+    QueueHandle_t queue;
     StaticQueue_t staticQueue;
     uint8_t queueStorageArea[LEN * sizeof(T)];
 
 public:
-    Queue() : // cppcheck-suppress misra-c2012-2.7; (False positive for unused parameter)
-        queue(xQueueCreateStatic(LEN, sizeof(T), queueStorageArea, &staticQueue), [](QueueHandle_t queue) { vQueueDelete(queue); }){};
+    Queue() = default;
+
+    /**
+     * @brief Initialises the queue. This must be called before use.
+     *
+     */
+    void init() {
+        if (isOnStack((void*)this)) {
+            printf("WARNING: Static queue allocated on the stack! This WILL cause severe problems.\n");
+            configASSERT(0); // assert error
+        } else {
+            /* ok*/
+        };
+
+        queue = xQueueCreateStatic(LEN, sizeof(T), queueStorageArea, &staticQueue);
+
+        if (queue == NULL) {
+            printf("Queue was not created!\n");
+            configASSERT(queue);
+        } else { // ok
+        };
+    }
 
     /**
      * Posts an item to the end of a queue. The item is queued by copy, not by reference.
@@ -32,7 +52,7 @@ public:
      * \return true if the item was enqueued, false otherwise
      */
     bool enqueue(T const& item, uint32_t timeout) {
-        return xQueueSendToBack(queue.get(), &item, pdMS_TO_TICKS(timeout));
+        return xQueueSendToBack(queue, &item, pdMS_TO_TICKS(timeout));
     }
 
     /**
@@ -45,7 +65,7 @@ public:
      * \return true if the item was enqueued, false otherwise
      */
     bool prepend(T const& item, uint32_t timeout) {
-        return xQueueSendToFront(queue.get(), &item, pdMS_TO_TICKS(timeout));
+        return xQueueSendToFront(queue, &item, pdMS_TO_TICKS(timeout));
     }
 
     /**
@@ -57,7 +77,7 @@ public:
      */
     T peek(uint32_t timeout) {
         T item;
-        xQueuePeek(queue.get(), &item, pdMS_TO_TICKS(timeout));
+        xQueuePeek(queue, &item, pdMS_TO_TICKS(timeout));
         return item;
     };
 
@@ -70,7 +90,7 @@ public:
      */
     T dequeue(uint32_t timeout) {
         T item;
-        xQueueReceive(queue.get(), &item, pdMS_TO_TICKS(timeout));
+        xQueueReceive(queue, &item, pdMS_TO_TICKS(timeout));
         return item;
     };
 
@@ -80,14 +100,14 @@ public:
      * \return the number of items in the queue
      */
     uint32_t size() {
-        return uxQueueMessagesWaiting(queue.get());
+        return uxQueueMessagesWaiting(queue);
     };
 
     /**
      * Reset a queue to its original empty state.
      */
     void reset() {
-        xQueueReset(queue.get());
+        xQueueReset(queue);
     };
 };
 

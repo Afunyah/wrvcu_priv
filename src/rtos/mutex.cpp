@@ -11,8 +11,8 @@ void Mutex::init() {
         /* ok*/
     };
 
-    if (mutex == NULL)
-        mutex = xSemaphoreCreateMutexStatic(&mutexBuffer);
+    // if (mutex == NULL)
+    mutex = xSemaphoreCreateMutexStatic(&mutexBuffer);
 
     if (mutex == NULL) {
         printf("Mutex was not created!\n");
@@ -26,12 +26,10 @@ bool Mutex::take() {
 }
 
 bool Mutex::take(std::uint32_t timeout) {
-    init();
     return xSemaphoreTake(mutex, pdMS_TO_TICKS(timeout));
 }
 
 bool Mutex::give() {
-    init();
     return xSemaphoreGive(mutex);
 }
 
