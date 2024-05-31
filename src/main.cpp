@@ -1,8 +1,12 @@
 #include "arduino_freertos.h"
+#include <can/CANController_T4.hpp>
+
+using namespace wrvcu;
 
 // using namespace wrvcu;
 
 void test_rtos();
+void test_can();
 
 void setup() {
     Serial.begin(115200); // wait up to 2 seconds for serial connection
@@ -14,15 +18,10 @@ void setup() {
     }
 
     pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(LED_BUILTIN, HIGH);
 
-    test_rtos();
+    // test_rtos();
+    test_can();
 }
 
 void loop() {
-    // digitalWrite(LED_BUILTIN, HIGH);
-    // delay(500);
-
-    // digitalWrite(LED_BUILTIN, LOW);
-    // delay(500);
 }
