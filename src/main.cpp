@@ -7,6 +7,7 @@ using namespace wrvcu;
 
 void test_rtos();
 void test_can();
+void test_logging();
 
 void setup() {
     Serial.begin(115200); // wait up to 2 seconds for serial connection
@@ -19,7 +20,7 @@ void setup() {
 
     pinMode(LED_BUILTIN, OUTPUT);
 
-    // test_rtos();
+    // test_logging();
     test_can();
 }
 

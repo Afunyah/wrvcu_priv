@@ -1,8 +1,12 @@
 #pragma once
 
+#include "logging/log.hpp"
 #include <FlexCAN_T4.h>
 #include <can/AbstractCANController.hpp>
 #include <rtos/rtos.hpp>
+
+#define CAN_MAX_READS 15
+#define CAN_BAUD_RATE 500000
 
 namespace wrvcu {
 
@@ -12,7 +16,6 @@ class CANController_T4 : public AbstractCANController {
 
     FlexCAN_T4<BUS, RX_SIZE_256, TX_SIZE_16> can;
     Task task;
-    const int MAX_READS = 15; // max reads without waiting
     Mutex mutex;
 
     /**
@@ -29,7 +32,7 @@ class CANController_T4 : public AbstractCANController {
             // read a burst of messages to increase throughput
             // but limit max reads in one burst to prevent hogging
             // - especially important as a high priority task
-            while (can.read(msg) && reads < MAX_READS) {
+            while (can.read(msg) && reads < CAN_MAX_READS) {
                 reads++;
 
                 // convert message types
@@ -51,8 +54,8 @@ class CANController_T4 : public AbstractCANController {
             }
             mutex.give();
 
-            if (reads >= MAX_READS)
-                printf("Too many CAN messages! Max reads exceeded.\n"); // TODO: Error logging?
+            if (reads >= CAN_MAX_READS)
+                WARN("Too many CAN messages! Max reads exceeded.\n");
 
             Task::delay(5);
         };
@@ -65,7 +68,7 @@ public:
      */
     void init(uint32_t task_priority) override {
         can.begin();
-        can.setBaudRate(500000);
+        can.setBaudRate(CAN_BAUD_RATE);
 
         mutex.init();
 
