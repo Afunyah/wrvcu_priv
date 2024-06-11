@@ -35,7 +35,6 @@ void Inverter::stop() {
     disable_pwm();
 
     mutex.take();
-
     state = InverterStates::PreOp;
     enable = false;
     mutex.give();
@@ -53,7 +52,7 @@ void Inverter::loop() {
         switch (state) {
         case (InverterStates::Unknown):
             if (Task::millis() > (last_tx + INVERTER_SEND_PERIOD)) {
-                printf("Sending Reset from Unknown\n");
+                DEBUG("Inverter: Sending Reset from Unknown\n");
                 device.sendNMT(NMTCommand::Reset);
                 state = InverterStates::Reset;
                 last_tx = Task::millis();
@@ -62,7 +61,7 @@ void Inverter::loop() {
 
         case (InverterStates::Reset):
             if (Task::millis() > (last_tx + INVERTER_SEND_PERIOD)) {
-                printf("Sending PreOp from Reset\n");
+                DEBUG("Inverter: Sending PreOp from Reset\n");
                 device.sendNMT(NMTCommand::PreOperational);
                 state = InverterStates::PreOp;
                 last_tx = Task::millis();
@@ -71,7 +70,7 @@ void Inverter::loop() {
 
         case (InverterStates::PreOp):
             if (enable) {
-                printf("Sending Op\n");
+                DEBUG("Inverter: Sending Op\n");
                 device.sendNMT(NMTCommand::Operational);
                 state = InverterStates::Op;
                 last_tx = Task::millis();
@@ -80,7 +79,7 @@ void Inverter::loop() {
 
         case (InverterStates::Op):
             if (Task::millis() > (last_tx + INVERTER_SEND_PERIOD)) {
-                printf("Sending Disable PWM\n");
+                DEBUG("Inverter: Sending Disable PWM\n");
                 disable_pwm();
                 state = InverterStates::Idle;
                 last_tx = Task::millis();
@@ -90,7 +89,7 @@ void Inverter::loop() {
         case (InverterStates::Idle):
             if (enable) {
                 if (Task::millis() > (last_tx + INVERTER_SEND_PERIOD)) {
-                    printf("Sending Enable\n");
+                    DEBUG("Inverter: Sending Enable\n");
                     enable_pwm();
                     state = InverterStates::Drive;
                     last_tx = Task::millis();
@@ -100,7 +99,7 @@ void Inverter::loop() {
 
         case (InverterStates::Drive):
             if (!enable) {
-                printf("Disabling PWM\n");
+                DEBUG("Inverter: Disabling PWM From Drive\n");
                 disable_pwm();
                 state = InverterStates::Idle;
             }
@@ -138,7 +137,6 @@ void Inverter::loop() {
 
         if (errorCode != 0) {
             state = InverterStates::Error;
-
         }
 
         mutex.give();

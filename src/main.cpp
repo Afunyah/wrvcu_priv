@@ -24,6 +24,7 @@ using namespace wrvcu;
 
 void test_rtos();
 void test_can();
+void test_inverter();
 
 void test_inverter();
 
@@ -63,6 +64,7 @@ void setup() {
 
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
+
     can1.init(CAN_TASK_PRIORITY);
 
     canOpen.init(acan1); // init canopen main
@@ -72,9 +74,6 @@ void setup() {
     // test_can();
 
     test_inverter();
-
-    // test_logging();
-    // test_can();
 }
 
 void loop() {
