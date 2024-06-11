@@ -24,6 +24,8 @@ protected:
     Mutex mutex;
     Task task;
 
+    uint16_t InverterRequestedTorque = 0;
+
 public:
     void init();
     void loop();

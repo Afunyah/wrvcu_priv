@@ -2,6 +2,7 @@
 
 #include "battery.h"
 #include "can/CANOpenDevice.hpp"
+#include "pins.hpp"
 #include "rtos/mutex.hpp"
 
 namespace wrvcu {
@@ -29,6 +30,8 @@ protected:
     void loop();
 
     void wake();
+
+    void updateState(uint8_t status);
 
 public:
     float maxDischargeCurrent = 0; // Amps

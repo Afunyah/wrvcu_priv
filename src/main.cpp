@@ -1,32 +1,30 @@
 #include "arduino_freertos.h"
+#include "can/CANController_T4.hpp"
+#include "can/CANOpenHost.hpp"
 #include "car.hpp"
 #include "constants.hpp"
-#include "devices/inverter.hpp"
 #include "pins.hpp"
-#include <can/AbstractCanController.hpp>
-#include <can/CANController_T4.hpp>
-#include <can/CANOpenHost.hpp>
 
 // vehicle globals
 namespace wrvcu {
+TractiveSystem ts;
+Inverter inverter;
+Battery battery;
+ThrottleManager throttle;
 
 CANController_T4<CAN1> can1;
-std::shared_ptr<AbstractCANController> acan1((AbstractCANController*)&can1); // polymorphism
-
 CANOpenHost canOpen;
 
-Inverter inverter;
-TractiveSystem ts;
+ADC adc;
 
 }
 
-using namespace wrvcu;
-
+void test_throttle_func();
 void test_rtos();
 void test_can();
 void test_inverter();
 
-void test_inverter();
+using namespace wrvcu;
 
 void setup() {
     Serial.begin(115200); // wait up to 2 seconds for serial connection
@@ -65,16 +63,22 @@ void setup() {
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
 
-    can1.init(CAN_TASK_PRIORITY);
+    // ---------- start tasks ----------
 
-    canOpen.init(acan1); // init canopen main
-    canOpen.sendSync();
+    can1.init(TASK_PRIORITY_DEFAULT + 3);
+    // canOpen.init((&can1));
+    inverter.init((&can1), 1);
 
-    // test_rtos();
-    // test_can();
+    // battery.init((&can1));
 
-    test_inverter();
+    ts.init();
+
+    adc.init(ADC_CS, &SPI, false);
+    throttle.init(&adc);
+
+    startScheduler();
+
+    // test_throttle_func();
 }
 
-void loop() {
-}
+void loop() {}

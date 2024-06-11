@@ -1,5 +1,6 @@
 #include "devices/inverter.hpp"
 #include "constants.hpp"
+#include "logging/log.hpp"
 #include "rtos/task.hpp"
 
 namespace wrvcu {
@@ -33,15 +34,16 @@ void Inverter::stop() {
     // stop taken more seriously, send the CAN message immediately without waiting for mutex's or for tasks to wake up.
     device.sendNMT(NMTCommand::PreOperational);
     disable_pwm();
+    state = InverterStates::PreOp;
 
     mutex.take();
-    state = InverterStates::PreOp;
     enable = false;
     mutex.give();
 }
 
 void Inverter::sendTorque(int16_t torque) {
-    uint8_t data[8] = { (uint8_t)(torque & 0xff), (uint8_t)(torque >> 8), 0, 0, 0, 0, 0, 0 };
+    int sentTorque = torque * -1;
+    uint8_t data[2] = { (uint8_t)(sentTorque & 0xff), (uint8_t)(sentTorque >> 8) };
     device.sendPDO(INVERTER_RPDO1, data);
 };
 
@@ -131,7 +133,12 @@ void Inverter::loop() {
 
             // Read Errors
             // if (pdoMsg.cobID == 0x180) {
-            //     errorCode = pdoMsg.data[4] | (pdoMsg.data[5] << 8);
+            //     int newError = pdoMsg.data[4] | (pdoMsg.data[5] << 8);
+            //     if (newError != errorCode){
+            //         ERROR("Inverter: Got error code");
+            //         printf("Error code: %x\n", newError);
+            //         errorCode = newError;
+            //     }
             // }
         }
 

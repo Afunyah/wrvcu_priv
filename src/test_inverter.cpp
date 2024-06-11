@@ -10,7 +10,6 @@ using namespace wrvcu;
 static Task taskA;
 
 static CANController_T4<CAN1> can1;
-static CANOpenHost canOpen;
 static Inverter inverter;
 
 void test_inverter_task() {
@@ -45,7 +44,7 @@ void test_inverter() {
     taskA.start(test_inverter_task, TASK_PRIORITY_DEFAULT, "Inv");
 
     can1.init(TASK_PRIORITY_DEFAULT + 3);
-    canOpen.init((&can1)); // init canopen main
+    // canOpen.init((&can1)); // init canopen main
     inverter.init((&can1), 1);
     // inverter.start();
 

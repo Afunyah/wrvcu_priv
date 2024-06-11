@@ -70,7 +70,6 @@ void CANOpenDevice::sendSDORead(uint16_t index, uint8_t subindex) {
     msg.data[1] = index & 0xff;
     msg.data[2] = (index & 0xff00) >> 8;
     msg.data[3] = subindex & 0xff;
-
     memset(msg.data + 4, 0, 4); // set the 4 data bytes to 0
 
     can->send(msg);

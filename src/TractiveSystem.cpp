@@ -1,5 +1,6 @@
 #include "TractiveSystem.hpp"
 #include "car.hpp"
+#include "logging/log.hpp"
 #include "pins.hpp"
 
 namespace wrvcu {
@@ -23,42 +24,43 @@ void TractiveSystem::loop() {
             // vPortEnterCritical();
             inverter.stop();
             // vPortExitCritical();
-            //    WARN("Inverter shut down due to SDC opening!");
+            ERROR("Inverter shut down due to SDC opening!");
         }
 
         mutex.take();
-        // implement TS state machine
+
         switch (state) {
         case TSStates::Idle:
-            if (/* battery.contactorState == ContactorStates::Idle && */ sdcClosed() && tsasPressed()) {
-                // battery.closeContactors();
+            if (/* battery.contactorState == ContactorStates::Ready && sdcClosed() &&*/ tsasPressed()) {
+                battery.closeContactors();
                 state = TSStates::CloseContactors;
                 contactorCloseStart = millis(); // record when we request contactors to close
-                // INFO("Closing Contactors");
+                INFO("Closing Contactors");
             }
             break;
 
         case TSStates::CloseContactors:
-            if (/* battery.contactorState == ContactorStates::Closed && */ sdcClosed()) {
+            if (/* battery.contactorState == ContactorStates::Active &&  sdcClosed()*/ true) {
                 state = TSStates::WaitR2D;
-                // INFO("Waiting for R2D");
+                INFO("Waiting for R2D");
             } else if (!sdcClosed()) {
-                // battery.openContactors(); // set BMS back into 'idle' state
+                battery.openContactors(); // set BMS back into 'ready' state
                 state = TSStates::Idle;
-                // WARN("SDC opened while waiting for contactors to close.");
+                WARN("SDC opened while waiting for contactors to close.");
             } else if (Task::millis() > (contactorCloseStart + CONTACTOR_CLOSE_TIMEOUT)) {
                 // timeout exceeded, so error.
-                // battery.openContactors();
+                battery.openContactors();
                 state = TSStates::Error;
-                // ERROR("Contactor close timeout exceeded.");
+                ERROR("Contactor close timeout exceeded.");
             }
             break;
 
         case TSStates::WaitR2D:
-            if (/* battery.contactorState == ContactorStates::Closed && */ sdcClosed() && brakesOn() && startPressed()) {
+            if (/* battery.contactorState == ContactorStates::Active &&  sdcClosed() && brakesOn() &&*/ startPressed()) {
                 inverter.start();
+                printf("Starting Inverter\n");
                 state = TSStates::StartInverter;
-                // INFO("Starting Inverter");
+                INFO("Starting Inverter");
             }
             break;
 
@@ -67,10 +69,11 @@ void TractiveSystem::loop() {
                 setBuzzer(true);
                 state = TSStates::Buzzer;
                 buzzerStart = Task::millis();
-                // INFO("Starting buzzer");
+
+                INFO("Starting buzzer");
             } else if (inverter.state == InverterStates::Error || inverter.state == InverterStates::Unknown) {
                 state = TSStates::Error;
-                // ERROR("Could not start inverter! Inverter entered error state");
+                ERROR("Could not start inverter! Inverter entered error state");
             }
             break;
 
@@ -79,7 +82,7 @@ void TractiveSystem::loop() {
                 setBuzzer(false);
                 state = TSStates::Driving;
                 setR2DLED(true);
-                // INFO("Buzzer complete, entering drive");
+                INFO("Buzzer complete, entering drive");
             }
             break;
 
@@ -87,14 +90,26 @@ void TractiveSystem::loop() {
             if (inverter.state == InverterStates::Error || inverter.state == InverterStates::Unknown) {
                 state = TSStates::Error;
                 setR2DLED(false);
-                // ERROR("Inverter errored during drive!");
+                ERROR("Inverter errored during drive!");
             };
             break;
 
         case TSStates::Error:
-            inverter.stop();
+            // inverter.stop();
             break;
         }
+
+        if (state == TSStates::Driving) {
+            //     // if(throttle.isCriticalError()){
+            //     //     state = TSStates::Error;
+            InverterRequestedTorque = throttle.getTorqueRequestFraction() * INVERTER_MAXMIMUM_TORQUE_REQUEST;
+            if (InverterRequestedTorque > INVERTER_MAXMIMUM_TORQUE_REQUEST) {
+                // TODO: Fix for regen
+                InverterRequestedTorque = INVERTER_MAXMIMUM_TORQUE_REQUEST;
+            }
+            inverter.sendTorque(InverterRequestedTorque);
+        }
+
         mutex.give();
 
         Task::delay(10);
@@ -119,6 +134,14 @@ void TractiveSystem::setR2DLED(bool out) {
 
 void TractiveSystem::setBuzzer(bool out) {
     digitalWrite(BUZZER_SIGNAL_PIN, (uint8_t)out);
+}
+
+bool TractiveSystem::brakesOn() {
+    if (adc.read(2) > BRAKEPRESSURE1_THRESHOLD || adc.read(3) > BRAKEPRESSURE1_THRESHOLD) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 TSStates TractiveSystem::getState() {

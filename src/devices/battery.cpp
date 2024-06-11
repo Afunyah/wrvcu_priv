@@ -1,5 +1,6 @@
 #include "devices/battery.hpp"
 #include "constants.hpp"
+#include "logging/log.hpp"
 #include "rtos/task.hpp"
 
 #define BATTERY_MAX_READS 15
@@ -53,7 +54,7 @@ void Battery::loop() {
             case BATTERY_BMS_BATT_STATUS_FRAME_ID:
                 battery_bms_batt_status_t status_msg;
                 battery_bms_batt_status_unpack(&status_msg, (uint8_t*)&msg.data, 8);
-                contactorState = static_cast<ContactorStates>(status_msg.status);
+                updateState(status_msg.status);
                 chargeRemaining = battery_bms_batt_status_q_remain_nom_decode(status_msg.q_remain_nom);
                 SoC = battery_bms_batt_status_so_c_decode(status_msg.so_c);
                 break;
@@ -106,20 +107,20 @@ void Battery::loop() {
 
         mutex.give();
 
-        // if (reads >= BATTERY_MAX_READS)
-        //     WARN("Battery task max reads exceeded!");
+        if (reads >= BATTERY_MAX_READS)
+            WARN("Battery task max reads exceeded!");
 
         Task::delay(5);
     }
 }
 
-// void Battery::closeContactors(){
-//     digitalWrite(BMS_IGN_SIGNAL_PIN, HIGH);
-// }
+void Battery::closeContactors() {
+    digitalWrite(BMS_IGNITION_PIN, HIGH);
+}
 
-// void Battery::openContactors(){
-//     digitalWrite(BMS_IGN_SIGNAL_PIN, LOW);
-// }
+void Battery::openContactors() {
+    digitalWrite(BMS_IGNITION_PIN, LOW);
+}
 
 void Battery::wake() {
     // Based off n-BMS user manual section 5.5.1
@@ -133,6 +134,32 @@ void Battery::wake() {
     };
 
     can->send(msg);
+}
+
+void Battery::updateState(uint8_t status) {
+    ContactorStates newState = static_cast<ContactorStates>(status);
+
+    if (newState != contactorState) {
+        switch (newState) {
+        case ContactorStates::Init:
+            INFO("Battery: Contactor/BMS state changed to Init");
+            break;
+        case ContactorStates::Ready:
+            INFO("Battery: Contactor/BMS state changed to Ready");
+            break;
+        case ContactorStates::AwaitActive:
+            INFO("Battery: Contactor/BMS state changed to Await Active");
+            break;
+        case ContactorStates::Active:
+            INFO("Battery: Contactor/BMS state changed to Active");
+            break;
+        case ContactorStates::Error:
+            INFO("Battery: Contactor/BMS state changed to Error");
+            break;
+        }
+    }
+
+    contactorState = newState;
 }
 
 }
