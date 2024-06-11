@@ -1,4 +1,5 @@
 #include "can/CANOpenHost.hpp"
+
 #include "constants.hpp"
 
 namespace wrvcu {

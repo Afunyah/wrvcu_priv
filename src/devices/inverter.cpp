@@ -35,6 +35,7 @@ void Inverter::stop() {
     disable_pwm();
 
     mutex.take();
+
     state = InverterStates::PreOp;
     enable = false;
     mutex.give();
@@ -137,6 +138,7 @@ void Inverter::loop() {
 
         if (errorCode != 0) {
             state = InverterStates::Error;
+
         }
 
         mutex.give();

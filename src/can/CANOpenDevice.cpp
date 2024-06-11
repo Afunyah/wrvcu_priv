@@ -7,7 +7,7 @@ void CANOpenDevice::init(AbstractCANController* ican, uint8_t inodeID, uint32_t 
     this->nodeID = inodeID;
 
     canQueue.init();
-
+  
     can->subscribe(HEARTBEAT_COB_ID + nodeID, &canQueue);    // sub to heartbeat
     can->subscribe(SDO_RESPONSE_COB_ID + nodeID, &canQueue); // sub to SDO reply
 
@@ -70,6 +70,7 @@ void CANOpenDevice::sendSDORead(uint16_t index, uint8_t subindex) {
     msg.data[1] = index & 0xff;
     msg.data[2] = (index & 0xff00) >> 8;
     msg.data[3] = subindex & 0xff;
+
     memset(msg.data + 4, 0, 4); // set the 4 data bytes to 0
 
     can->send(msg);
@@ -98,8 +99,8 @@ void CANOpenDevice::subscribePDO(uint32_t cob_id) {
 }
 
 void CANOpenDevice::loop() {
-
     while (true) {
+
         CANMessage canMessage = canQueue.dequeue(TIMEOUT_MAX);
 
         if (canMessage.id == (SDO_REQUEST_COB_ID + nodeID)) { // SDO Message

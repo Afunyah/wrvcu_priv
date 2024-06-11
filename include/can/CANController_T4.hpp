@@ -5,6 +5,7 @@
 #include <can/AbstractCANController.hpp>
 #include <rtos/rtos.hpp>
 
+
 #define CAN_MAX_READS 15
 #define CAN_BAUD_RATE 500000
 
@@ -32,6 +33,7 @@ class CANController_T4 : public AbstractCANController {
             // read a burst of messages to increase throughput
             // but limit max reads in one burst to prevent hogging
             // - especially important as a high priority task
+
             while (can.read(msg) && reads < CAN_MAX_READS) {
                 reads++;
 
@@ -56,7 +58,6 @@ class CANController_T4 : public AbstractCANController {
 
             if (reads >= CAN_MAX_READS)
                 WARN("Too many CAN messages! Max reads exceeded.\n");
-
             Task::delay(5);
         };
     }
@@ -76,7 +77,6 @@ public:
             [this] {
                 loop();
             },
-
             task_priority, "CAN_Task");
     };
 

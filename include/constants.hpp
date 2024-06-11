@@ -5,6 +5,7 @@
 
 #define INVERTER_TASK_PRIORITY (TASK_PRIORITY_DEFAULT + 2)
 #define CAN_TASK_PRIORITY (TASK_PRIORITY_DEFAULT + 3)
+#define TRACTIVE_SYSTEM_TASK_PRIORITY (TASK_PRIORITY_DEFAULT + 2)
 #define CANOPEN_HOST_TASK_PRIORITY (TASK_PRIORITY_DEFAULT)
 
 #define INVERTER_SEND_PERIOD 500
@@ -21,5 +22,12 @@
 
 #define INVERTER_CW_DISABLE_PWM 6
 #define INVERTER_CW_ENABLE_PWM 15
+
+// TODO: These could go in dynamic configuration.
+#define CONTACTOR_CLOSE_TIMEOUT 10000 // ms, the maximum time to wait for contactors to close
+#define APPS_TIMEOUT 100              // ms, maximum APPS implausibility length
+
+#define BUZZER_LENGTH 1500 // ms, how long the buzzer buzzes
+
 #define INV_CW_INDEX 0x6040
 #define INV_CW_SUBINDEX 0x00

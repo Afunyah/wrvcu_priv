@@ -60,8 +60,7 @@ public:
      * @param ican The CAN controller for the bus the device is on
      * @param inodeID The node ID of the device
      */
-    void
-    init(AbstractCANController* ican, uint8_t inodeID, uint32_t task_priority);
+    void init(AbstractCANController* ican, uint8_t inodeID, uint32_t task_priority);
 
     /**
      * @brief Send an NMT command to the device
