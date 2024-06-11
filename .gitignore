@@ -36,3 +36,6 @@
 
 # VS Code
 .vscode
+
+# Generated DBC source files
+.dbc_gen
