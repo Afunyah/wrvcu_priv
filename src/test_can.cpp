@@ -6,8 +6,8 @@ using namespace wrvcu;
 
 static Task taskA;
 
-CANController_T4<CAN1> can1;
-CANController_T4<CAN3> can2;
+static CANController_T4<CAN1> can1;
+static CANController_T4<CAN3> can2;
 
 static Queue<CANMessage, 256> canQueue;
 
