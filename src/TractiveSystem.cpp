@@ -20,18 +20,34 @@ void TractiveSystem::loop() {
     while (true) {
 
         // If the SDC opens, and the inverter is running, we want to shut down the inverter immediately.
-        if (inverter.state == InverterStates::Drive && (!sdcClosed() /* || battery.contactorState == ContactorStates::Error */)) {
+        if (inverter.state == InverterStates::Drive && (!sdcClosed() || battery.contactorState == ContactorStates::Error)) {
             // vPortEnterCritical();
             inverter.stop();
             // vPortExitCritical();
             ERROR("Inverter shut down due to SDC opening!");
         }
 
+        if (battery.contactorState == ContactorStates::Error) {
+            battery.openContactors();
+            state = TSStates::Error;
+        }
+
+        if (!sdcClosed()) {
+            battery.openContactors();
+            if (state != TSStates::Idle || state != TSStates::Error) {
+                state = TSStates::Idle;
+            }
+        }
+
+        if (state != TSStates::Driving) {
+            setR2DLED(false);
+        }
+
         mutex.take();
 
         switch (state) {
         case TSStates::Idle:
-            if (/* battery.contactorState == ContactorStates::Ready && sdcClosed() &&*/ tsasPressed()) {
+            if (battery.contactorState == ContactorStates::Ready && sdcClosed() && tsasPressed()) {
                 battery.closeContactors();
                 state = TSStates::CloseContactors;
                 contactorCloseStart = millis(); // record when we request contactors to close
@@ -40,7 +56,7 @@ void TractiveSystem::loop() {
             break;
 
         case TSStates::CloseContactors:
-            if (/* battery.contactorState == ContactorStates::Active &&  sdcClosed()*/ true) {
+            if (battery.contactorState == ContactorStates::Active && sdcClosed()) {
                 state = TSStates::WaitR2D;
                 INFO("Waiting for R2D");
             } else if (!sdcClosed()) {
@@ -56,9 +72,8 @@ void TractiveSystem::loop() {
             break;
 
         case TSStates::WaitR2D:
-            if (/* battery.contactorState == ContactorStates::Active &&  sdcClosed() && brakesOn() &&*/ startPressed()) {
+            if (battery.contactorState == ContactorStates::Active && sdcClosed() && /*brakesOn() &&*/ startPressed()) {
                 inverter.start();
-                printf("Starting Inverter\n");
                 state = TSStates::StartInverter;
                 INFO("Starting Inverter");
             }
@@ -117,7 +132,17 @@ void TractiveSystem::loop() {
 }
 
 bool TractiveSystem::sdcClosed() {
-    return digitalRead(SCMON_PIN);
+    static bool lastSc = false;
+
+    bool s = digitalRead(SCMON_PIN);
+    if (s != lastSc) {
+        if (s)
+            INFO("SC Closed");
+        else
+            INFO("SC Open");
+    }
+    lastSc = s;
+    return s;
 }
 
 bool TractiveSystem::tsasPressed() {

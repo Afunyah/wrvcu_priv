@@ -63,13 +63,17 @@ void setup() {
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
 
+    setLogLevel(LogLocation::STDOUT, LogLevel::DEBUG);
+
     // ---------- start tasks ----------
 
+    loggingInit();
+
     can1.init(TASK_PRIORITY_DEFAULT + 3);
-    // canOpen.init((&can1));
+    canOpen.init((&can1));
     inverter.init((&can1), 1);
 
-    // battery.init((&can1));
+    battery.init((&can1));
 
     ts.init();
 

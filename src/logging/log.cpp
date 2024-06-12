@@ -180,7 +180,7 @@ void loggingLoop() {
         }
 
         if (msg.level >= getLogLevel(LogLocation::FILE)) {
-            writeLogToFlash(msg.level, msg.module, msg.message);
+            // writeLogToFlash(msg.level, msg.module, msg.message);
         }
 
         if (msg.level >= getLogLevel(LogLocation::RADIO)) {
