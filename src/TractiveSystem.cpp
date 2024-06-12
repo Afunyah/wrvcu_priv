@@ -137,7 +137,7 @@ void TractiveSystem::setBuzzer(bool out) {
 }
 
 bool TractiveSystem::brakesOn() {
-    if (adc.read(2) > BRAKEPRESSURE1_THRESHOLD || adc.read(3) > BRAKEPRESSURE1_THRESHOLD) {
+    if (adc.read(2) > BRAKEPRESSURE1_THRESHOLD || adc.read(3) > BRAKEPRESSURE2_THRESHOLD) {
         return true;
     } else {
         return false;

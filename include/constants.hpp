@@ -35,6 +35,7 @@
 #define APPS_TIMEOUT 100              // ms, maximum APPS implausibility length
 
 #define BRAKEPRESSURE1_THRESHOLD 600
+#define BRAKEPRESSURE2_THRESHOLD 500
 #define BRAKE_TIMEOUT 500
 
 #define BUZZER_LENGTH 1500 // ms, how long the buzzer buzzes

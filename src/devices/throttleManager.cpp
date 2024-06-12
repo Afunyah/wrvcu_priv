@@ -14,7 +14,7 @@ bool ThrottleManager::checkAPPSConnection() {
 }
 
 void ThrottleManager::checkAPPSPlausibility() {
-    if ((APPS1.getVoltage() > APPS2.getVoltage() + 0.1) || (APPS1.getVoltage() < APPS2.getVoltage() - 0.1) || throttleError) {
+    if ((APPS1.getSaturatedFraction() > APPS2.getSaturatedFraction() + 0.1) || (APPS1.getSaturatedFraction() < APPS2.getSaturatedFraction() - 0.1) || throttleError) {
         currentAPPSMillis = Task::millis();
 
         if (!plausibilityTimerStarted) {
@@ -69,6 +69,7 @@ void ThrottleManager::checkHardBrake() {
 }
 
 float ThrottleManager::getTorqueRequestFraction() {
+    // checkAPPSConnection();
     // checkAPPSPlausibility();
     // checkHardBrake();
     return getThrottleFraction();
