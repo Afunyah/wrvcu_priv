@@ -27,7 +27,7 @@
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // Number between 0 and 1000
-#define INVERTER_MAXMIMUM_TORQUE_REQUEST 400
+#define INVERTER_MAXMIMUM_TORQUE_REQUEST 600
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 // TODO: These could go in dynamic configuration.

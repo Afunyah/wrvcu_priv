@@ -14,7 +14,7 @@ bool ThrottleManager::checkAPPSConnection() {
 }
 
 void ThrottleManager::checkAPPSPlausibility() {
-    if ((APPS1.getSaturatedFraction() > APPS2.getSaturatedFraction() + 0.1) || (APPS1.getSaturatedFraction() < APPS2.getSaturatedFraction() - 0.1) || throttleError) {
+    if ((APPS1.getSaturatedFraction() > APPS2.getSaturatedFraction() + 0.2) || (APPS1.getSaturatedFraction() < APPS2.getSaturatedFraction() - 0.2) || throttleError) {
         currentAPPSMillis = Task::millis();
 
         if (!plausibilityTimerStarted) {
@@ -26,10 +26,8 @@ void ThrottleManager::checkAPPSPlausibility() {
             throttleError = true;
         }
     } else {
-        if (plausibilityTimerStarted) {
-            plausibilityTimerStarted = false;
-            throttleError = false;
-        }
+        plausibilityTimerStarted = false;
+        throttleError = false;
     }
 }
 
