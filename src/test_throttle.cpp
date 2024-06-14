@@ -18,25 +18,19 @@ void test_throttle_task() {
 
     ts.init();
 
-    // ADC adc;
-    // adc.init(ADC_CS, &SPI, true);
-    // adc.begin(1000000);
+    ADC adc;
+    adc.init(ADC_CS, &SPI, false);
 
-    // throttleT.init(&adc);
+    throttleT.init(&adc);
 
-    // Serial.println("start of task");
+    Serial.println("start of task");
 
     while (true) {
-        // Serial.println("in task");
-        // Serial.println(APPS1.getVoltage());
-        Serial.print("APPS 1:");
-        // Serial.println(throttleT.APPS1.getSaturatedFraction());
-        // Serial.println(APPS1.readFilteredADC());
-        // Serial.print("APPS 2:");
-        // Serial.println(APPS1.readADC());
-        // Serial.println(APPS2.readFilteredADC());
-        // throttleT.testFunc();
-        // Serial.println(throttleT.getTorqueRequestFraction());
+        Serial.print("APPS 1: ");
+        Serial.print(throttleT.APPS1.getSaturatedFraction());
+        Serial.print("\tAPPS 2: ");
+        Serial.println(throttleT.APPS2.getSaturatedFraction());
+        throttleT.getTorqueRequestFraction();
         Task::delay(200);
     }
 }

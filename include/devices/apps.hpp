@@ -6,15 +6,8 @@ namespace wrvcu {
 
 class APPS {
 protected:
-    float max_voltage;
-    float low_connect_voltage;
-    float high_connect_voltage;
-
-    float max_angle;
-
     float angle_offset;
     float angle_range;
-    float ignore_fraction;
 
     ADC* adc;
 

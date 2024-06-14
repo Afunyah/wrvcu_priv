@@ -30,9 +30,12 @@
 #define INVERTER_MAXMIMUM_TORQUE_REQUEST 1000
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+#define ADC_RESOLUTION 4096
+
 // TODO: These could go in dynamic configuration.
 #define CONTACTOR_CLOSE_TIMEOUT 10000 // ms, the maximum time to wait for contactors to close
 #define APPS_TIMEOUT 100              // ms, maximum APPS implausibility length
+#define APPS_PLAUSIBILITY_FRACTION 0.1
 
 #define BRAKEPRESSURE1_THRESHOLD 600
 #define BRAKEPRESSURE2_THRESHOLD 500
@@ -53,9 +56,16 @@
 #define APPS2_ANGLE_OFFSET 170
 #define APPS2_ANGLE_RANGE 19
 
-#define APPS_IGNORE_FRACTION 0.2
+#define APPS_IGNORE_FRACTION 0.1
 
-#define APPS_LOW_VOLTAGE 0.18
-#define APPS_HIGH_VOLTAGE 1.62
+#define APPS_LOW_VOLTAGE 0.16
+#define APPS_HIGH_VOLTAGE 1.64
 
 #define APPS_MAX_VOLTAGE 1.8
+#define APPS_MAX_ANGLE 360
+#define APPS_START_FRACTION 0.1
+#define APPS_END_FRACTION 0.9
+
+
+
+

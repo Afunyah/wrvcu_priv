@@ -2,6 +2,7 @@
 #include "constants.hpp"
 #include "pins.hpp"
 
+
 namespace wrvcu {
 
 void APPS::init(ADC* adc_o, int adc_channel, float angle_offset_o, float angle_range_o) {
@@ -9,15 +10,9 @@ void APPS::init(ADC* adc_o, int adc_channel, float angle_offset_o, float angle_r
     this->adc = adc_o;
     this->adc_channel = adc_channel;
 
-    this->max_voltage = APPS_MAX_VOLTAGE;
-    this->max_angle = 360;
-
     this->angle_offset = angle_offset_o;
     this->angle_range = angle_range_o;
-    this->ignore_fraction = APPS_IGNORE_FRACTION;
-
-    this->high_connect_voltage = APPS_HIGH_VOLTAGE;
-    this->low_connect_voltage = APPS_LOW_VOLTAGE;
+ 
 }
 
 uint16_t APPS::read() {
@@ -25,15 +20,15 @@ uint16_t APPS::read() {
 }
 
 float APPS::getVoltage() {
-    return read() * max_voltage / 4096;
+    return read() * APPS_MAX_VOLTAGE / ADC_RESOLUTION;
 }
 
 float APPS::getAngle() {
-    return (getVoltage() - 0.1 * max_voltage) * max_angle / (0.8 * max_voltage);
+    return (getVoltage() - APPS_START_FRACTION * APPS_MAX_VOLTAGE) * APPS_MAX_ANGLE / (abs(APPS_END_FRACTION - APPS_START_FRACTION) * APPS_MAX_VOLTAGE);
 }
 
 float APPS::getFraction() {
-    return (getAngle() - angle_offset - angle_range * ignore_fraction) / (angle_range);
+    return (getAngle() - angle_offset - angle_range * APPS_IGNORE_FRACTION) / (angle_range);
 }
 
 float APPS::getSaturatedFraction() {
@@ -42,15 +37,16 @@ float APPS::getSaturatedFraction() {
         frac = 0;
     }
 
-    if (frac >= (1 - ignore_fraction)) {
-        frac = (1 - ignore_fraction);
+    if (frac >= (1 - APPS_IGNORE_FRACTION)) {
+        frac = (1 - APPS_IGNORE_FRACTION);
     }
 
-    return (frac / (1 - ignore_fraction));
+    return (frac / (1 - APPS_IGNORE_FRACTION));
 }
 
 bool APPS::isConnected() {
-    return (getVoltage() >= low_connect_voltage && getVoltage() <= high_connect_voltage);
+    float volts = getVoltage();
+    return (volts > APPS_LOW_VOLTAGE && volts < APPS_HIGH_VOLTAGE);
 }
 
 }

@@ -14,7 +14,7 @@ bool ThrottleManager::checkAPPSConnection() {
 }
 
 void ThrottleManager::checkAPPSPlausibility() {
-    if ((APPS1.getSaturatedFraction() > APPS2.getSaturatedFraction() + 0.2) || (APPS1.getSaturatedFraction() < APPS2.getSaturatedFraction() - 0.2) || throttleError) {
+    if ((APPS1.getSaturatedFraction() > APPS2.getSaturatedFraction() + APPS_PLAUSIBILITY_FRACTION) || (APPS1.getSaturatedFraction() < APPS2.getSaturatedFraction() - APPS_PLAUSIBILITY_FRACTION)) {
         currentAPPSMillis = Task::millis();
 
         if (!plausibilityTimerStarted) {
@@ -26,21 +26,25 @@ void ThrottleManager::checkAPPSPlausibility() {
             throttleError = true;
         }
     } else {
-        plausibilityTimerStarted = false;
-        throttleError = false;
+        if (plausibilityTimerStarted) {
+            plausibilityTimerStarted = false;
+            throttleError = false;
+        }
     }
 }
 
-// float ThrottleManager::getThrottleFraction() {
-//     if (throttleError || brakeError || ts.brakesOn()) {
-//         return 0;
-//     } else {
-//         return APPS1.getSaturatedFraction();
-//     }
-// }
-
 float ThrottleManager::getThrottleFraction() {
-    return APPS1.getSaturatedFraction();
+    // if (throttleError || brakeError || ts.brakesOn()) {
+    //     return 0;
+    // } else {
+    //     return APPS1.getSaturatedFraction();
+    // }
+    if (throttleError) {
+        Serial.println("APPS Plausibility Error");
+        return 0;
+    } else {
+        return APPS1.getSaturatedFraction();
+    }
 }
 
 bool ThrottleManager::isCriticalError() {
@@ -67,8 +71,10 @@ void ThrottleManager::checkHardBrake() {
 }
 
 float ThrottleManager::getTorqueRequestFraction() {
-    // checkAPPSConnection();
-    // checkAPPSPlausibility();
+    if (!checkAPPSConnection()) {
+        Serial.println("APPS DISCONNECTED");
+    }
+    checkAPPSPlausibility();
     // checkHardBrake();
     return getThrottleFraction();
 }
