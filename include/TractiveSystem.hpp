@@ -34,6 +34,11 @@ public:
     bool tsasPressed();
     bool startPressed();
     bool brakesOn();
+    bool checkBrakesPlausibility();
+    int getBrakePressure1();
+    int getBrakePressure2();
+
+    bool brakesConnected();
 
     void setR2DLED(bool state);
     void setBuzzer(bool state);

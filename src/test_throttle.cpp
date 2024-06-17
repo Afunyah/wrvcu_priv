@@ -26,11 +26,17 @@ void test_throttle_task() {
     Serial.println("start of task");
 
     while (true) {
-        Serial.print("APPS 1: ");
-        Serial.print(throttleT.APPS1.getSaturatedFraction());
-        Serial.print("\tAPPS 2: ");
-        Serial.println(throttleT.APPS2.getSaturatedFraction());
-        throttleT.getTorqueRequestFraction();
+        // Serial.print("APPS 1: ");
+        // Serial.print(throttleT.APPS1.getSaturatedFraction());
+        // Serial.print("\tAPPS 2: ");
+        // Serial.println(throttleT.APPS2.getSaturatedFraction());
+        // throttleT.getTorqueRequestFraction();
+
+        // in tractivesystem.cpp
+        // Serial.print("Brake 1: ");
+        // Serial.print(ts.getBrakePressure1());
+        // Serial.print("\tBrake 2: ");
+        // Serial.println(ts.getBrakePressure2());
         Task::delay(200);
     }
 }

@@ -161,8 +161,33 @@ void TractiveSystem::setBuzzer(bool out) {
     digitalWrite(BUZZER_SIGNAL_PIN, (uint8_t)out);
 }
 
+int TractiveSystem::getBrakePressure1() {
+    return adc.read(BRAKEPRESSURE1_CHANNEL);
+}
+
+int TractiveSystem::getBrakePressure2() {
+    return adc.read(BRAKEPRESSURE2_CHANNEL);
+}
+
 bool TractiveSystem::brakesOn() {
-    if (adc.read(2) > BRAKEPRESSURE1_THRESHOLD || adc.read(3) > BRAKEPRESSURE2_THRESHOLD) {
+    if (getBrakePressure1() > BRAKEPRESSURE1_THRESHOLD || getBrakePressure2() > BRAKEPRESSURE2_THRESHOLD) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+bool TractiveSystem::checkBrakesPlausibility() {
+    if (getBrakePressure1() > 2*getBrakePressure2() + BRAKE_PLAUSIBILITY_FRACTION*ADC_RESOLUTION || getBrakePressure1() < 2*getBrakePressure2() - BRAKE_PLAUSIBILITY_FRACTION*ADC_RESOLUTION ) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+bool TractiveSystem::brakesConnected() {
+    if (getBrakePressure1() > BRAKEPRESSURE1_LOW_ADC && getBrakePressure1() < BRAKEPRESSURE1_HIGH_ADC) {
         return true;
     } else {
         return false;

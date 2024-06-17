@@ -36,10 +36,20 @@
 #define CONTACTOR_CLOSE_TIMEOUT 10000 // ms, the maximum time to wait for contactors to close
 #define APPS_TIMEOUT 100              // ms, maximum APPS implausibility length
 #define APPS_PLAUSIBILITY_FRACTION 0.1
+#define BRAKE_PLAUSIBILITY_FRACTION 0.1
 
 #define BRAKEPRESSURE1_THRESHOLD 600
 #define BRAKEPRESSURE2_THRESHOLD 500
 #define BRAKE_TIMEOUT 500
+
+#define BRAKEPRESSURE1_CHANNEL 2
+#define BRAKEPRESSURE2_CHANNEL 3
+
+#define BRAKEPRESSURE1_LOW_ADC 220
+#define BRAKEPRESSURE1_HIGH_ADC 2500
+
+#define BRAKEPRESSURE1_LOW_ADC 150
+#define BRAKEPRESSURE1_HIGH_ADC 2500
 
 #define BUZZER_LENGTH 1500 // ms, how long the buzzer buzzes
 
