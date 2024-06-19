@@ -20,8 +20,10 @@ public:
 
     float getVoltage();
     float getAngle();
-    float getFraction();
     float getSaturatedFraction();
+    float getProcessedAngle();
+
+    float getRegenFraction();
 
     bool isConnected();
 };

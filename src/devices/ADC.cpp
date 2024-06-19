@@ -21,7 +21,7 @@ void ADC::init(uint8_t cspin, SPIClass* theSPI, bool crc_enable) {
 int ADC::read(int channel) {
     uint16_t adc_ou = 0;
     mutex.take();
-    adc_ou = adc->readADC(channel);
+    adc_ou = adc->readFiltered(channel);
     mutex.give();
     return adc_ou;
 }

@@ -111,25 +111,79 @@ void TractiveSystem::loop() {
             break;
 
         case TSStates::Error:
-            // inverter.stop();
+            inverter.stop();
             break;
         }
 
         if (state == TSStates::Driving) {
-            //     // if(throttle.isCriticalError()){
-            //     //     state = TSStates::Error;
-            InverterRequestedTorque = throttle.getTorqueRequestFraction() * INVERTER_MAXMIMUM_TORQUE_REQUEST;
-            if (InverterRequestedTorque > INVERTER_MAXMIMUM_TORQUE_REQUEST) {
-                // TODO: Fix for regen
-                InverterRequestedTorque = INVERTER_MAXMIMUM_TORQUE_REQUEST;
-            }
-            inverter.sendTorque(InverterRequestedTorque);
+            DriveSequence();
         }
 
         mutex.give();
 
         Task::delay_until(&prev, 10);
     }
+}
+
+void TractiveSystem::DriveSequence() {
+    if (throttle.isCriticalError()) {
+        state = TSStates::Error;
+    }
+
+    // ADD RPM OR SPEED BUTTON CHECK
+
+    checkRegenButtonState();
+    int16_t InverterRequestedTorque = 0.0;
+
+    float driveTorque = throttle.getTorqueRequestFraction();
+    float brakeTorque = throttle.getBrakeRegenFraction();
+    // float requestedTorque = 0.0;
+    // if (inRegenMode) {
+    //     requestedTorque = driveTorque + brakeTorque;
+    // } else {
+    //     requestedTorque = max(0, driveTorque);
+    // }
+    float requestedTorque = max(0, driveTorque);
+
+    // InverterRequestedTorque = requestedTorque * INVERTER_MAXMIMUM_TORQUE_REQUEST;
+    InverterRequestedTorque = requestedTorque * 200;
+
+
+
+    // int16_t maxDriveTorqueRequest = calculateMaxDriveTorque() / INVERTER_NM_PER_UNIT; // Positive
+    // int16_t maxRegenTorqueRequest = calculateMaxRegenTorque() / INVERTER_NM_PER_UNIT; // Negative
+
+    // if (maxDriveTorqueRequest < 0.0 || maxRegenTorqueRequest > 0.0) {
+    //     state = TSStates::Error;
+    // }
+
+    // if (inRegenMode /*&& inverterspeedinRPM>250*/) {
+    //     InverterRequestedTorque = std::clamp(InverterRequestedTorque, maxRegenTorqueRequest, maxDriveTorqueRequest);
+    // } else {
+    //     InverterRequestedTorque = std::clamp(InverterRequestedTorque, (int16_t)0, maxDriveTorqueRequest);
+    // }
+
+    
+
+    if (InverterRequestedTorque > INVERTER_MAXMIMUM_TORQUE_REQUEST) {
+        InverterRequestedTorque = INVERTER_MAXMIMUM_TORQUE_REQUEST;
+    }
+    if (InverterRequestedTorque < INVERTER_MINIMUM_TORQUE_REQUEST) {
+        InverterRequestedTorque = INVERTER_MINIMUM_TORQUE_REQUEST;
+    }
+
+    // Serial.println("-------------------------------------- ");
+    // Serial.print("APPS Torque: ");
+    // Serial.print(driveTorque);
+    // Serial.print("\tBrake Torque: ");
+    // Serial.println(brakeTorque);
+
+    // Serial.print("Requested Torque: ");
+    // Serial.print(requestedTorque);
+    // Serial.print("\tTo Inverter: ");
+    // Serial.println(InverterRequestedTorque);
+
+    inverter.sendTorque(InverterRequestedTorque);
 }
 
 bool TractiveSystem::sdcClosed() {
@@ -154,6 +208,18 @@ bool TractiveSystem::startPressed() {
     return digitalRead(START_BUTTON_PIN);
 }
 
+bool TractiveSystem::checkRegenButtonState() {
+    bool pres = digitalRead(REGEN_BUTTON_PIN);
+    if (pres) {
+        regenButtonHeld = true;
+    } else if (!pres && regenButtonHeld) {
+        regenButtonHeld = false;
+        inRegenMode = !inRegenMode;
+    }
+
+    return pres;
+}
+
 void TractiveSystem::setR2DLED(bool out) {
     digitalWrite(R2DLED_OUTPUT_PIN, (uint8_t)out);
 }
@@ -162,40 +228,55 @@ void TractiveSystem::setBuzzer(bool out) {
     digitalWrite(BUZZER_SIGNAL_PIN, (uint8_t)out);
 }
 
-int TractiveSystem::getBrakePressure1() {
-    return adc.read(BRAKEPRESSURE1_CHANNEL);
-}
-
-int TractiveSystem::getBrakePressure2() {
-    return adc.read(BRAKEPRESSURE2_CHANNEL);
-}
-
-bool TractiveSystem::brakesOn() {
-    if (getBrakePressure1() > BRAKEPRESSURE1_THRESHOLD || getBrakePressure2() > BRAKEPRESSURE2_THRESHOLD) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-bool TractiveSystem::checkBrakesPlausibility() {
-    if (getBrakePressure1() > 2 * getBrakePressure2() + BRAKE_PLAUSIBILITY_FRACTION * ADC_RESOLUTION || getBrakePressure1() < 2 * getBrakePressure2() - BRAKE_PLAUSIBILITY_FRACTION * ADC_RESOLUTION) {
-        return false;
-    } else {
-        return true;
-    }
-}
-
-bool TractiveSystem::brakesConnected() {
-    if (getBrakePressure1() > BRAKEPRESSURE1_LOW_ADC && getBrakePressure1() < BRAKEPRESSURE1_HIGH_ADC) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
 TSStates TractiveSystem::getState() {
     return state;
+}
+
+float TractiveSystem::calculateMaxRegenTorque() {
+    // float inverter_speed = inverter_rpm * RPM_TO_RADS_FACTOR;
+    float inverter_speed = 0.0;
+
+    float max_torque = -1.0 * BATTERY_VOLTAGE * battery.maxChargeCurrent / inverter_speed;
+
+    return max_torque;
+}
+
+float TractiveSystem::calculateMaxDriveTorque() {
+    // float inverter_speed = inverter_rpm * RPM_TO_RADS_FACTOR;
+    float inverter_speed = 0.0;
+
+    float max_torque = BATTERY_VOLTAGE * battery.maxDischargeCurrent / inverter_speed;
+
+    return max_torque;
+}
+
+void TractiveSystem::test_init() {
+    mutex.init();
+
+    // initialize outputs to off
+    setR2DLED(false);
+    setBuzzer(false);
+
+    task.start(
+        [this] { test_loop(); }, TRACTIVE_SYSTEM_TASK_PRIORITY, "TractiveSystem_Task");
+}
+
+void TractiveSystem::test_loop() {
+    while (true) {
+        mutex.take();
+        DriveSequence();
+        // throttle.checkBrakesPlausibility();
+        // Serial.print("APPS 1: ");
+        // Serial.print(throttle.APPS1.read());
+        // Serial.print("\tAPPS 2: ");
+        // Serial.println(throttle.APPS2.read());
+        // Serial.print("APPS 1: ");
+        // Serial.print(throttle.APPS1.getSaturatedFraction());
+        // Serial.print("\tAPPS 2: ");
+        // Serial.println(throttle.APPS2.getSaturatedFraction());
+        mutex.give();
+        Task::delay(10);
+    }
 }
 
 }

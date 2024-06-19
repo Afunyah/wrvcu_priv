@@ -70,7 +70,7 @@ void setup() {
     setLogLevel(LogLocation::FILE, LogLevel::DEBUG);
     setLogLevel(LogLocation::RADIO, LogLevel::DEBUG);
 
-    // ---------- start tasks ----------
+    // // ---------- start tasks ----------
 
     loggingInit();
 
@@ -79,11 +79,12 @@ void setup() {
     inverter.init((&can1), 1);
 
     battery.init((&can1));
-
-    ts.init();
-
+    
     adc.init(ADC_CS, &SPI, false);
     throttle.init(&adc);
+
+    ts.init();
+    // ts.test_init();
 
     startScheduler();
 

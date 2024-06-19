@@ -21,10 +21,11 @@ protected:
     uint32_t contactorCloseStart = 0;
     uint32_t buzzerStart = 0;
 
+    bool inRegenMode = false;
+    bool regenButtonHeld = false;
+
     Mutex mutex;
     Task task;
-
-    uint16_t InverterRequestedTorque = 0;
 
 public:
     void init();
@@ -33,16 +34,19 @@ public:
     bool sdcClosed();
     bool tsasPressed();
     bool startPressed();
-    bool brakesOn();
-    bool checkBrakesPlausibility();
-    int getBrakePressure1();
-    int getBrakePressure2();
-
-    bool brakesConnected();
-
+    bool checkRegenButtonState();
+    
     void setR2DLED(bool state);
     void setBuzzer(bool state);
 
+    float calculateMaxRegenTorque();
+    float calculateMaxDriveTorque();
+
+    void DriveSequence();
+
     TSStates getState();
+
+    void test_init();
+    void test_loop();
 };
 }
