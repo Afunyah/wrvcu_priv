@@ -12,8 +12,7 @@ void ThrottleManager::init(ADC* adc) {
 void ThrottleManager::checkAPPSConnected() {
     if (!APPS1.isConnected() || !APPS2.isConnected()) {
         APPSDisconnectedError = true;
-    }
-    else{
+    } else {
         APPSDisconnectedError = false; // TEMPORARY RESET
     }
 }
@@ -67,7 +66,6 @@ bool ThrottleManager::isCriticalError() {
 float ThrottleManager::getThrottleFraction() {
 
     float APPSFraction = APPS1.getSaturatedFraction();
-    Task::delay(10);
     float regenFraction = APPS1.getRegenFraction();
     if (APPSFraction > 0.00f) {
         return APPSFraction;
@@ -77,31 +75,31 @@ float ThrottleManager::getThrottleFraction() {
 }
 
 float ThrottleManager::getTorqueRequestFraction() {
+    checkAPPSConnected();   // Sets APPSDisconnected Error
+    checkBrakesConnected(); // Sets BrakesDisconnected Error
+
+    checkAPPSPlausibility();   // Sets APPSPlausibility Error
+    checkBrakesPlausibility(); // Sets BrakesPlausibility Error
+
+    checkHardBrake(); // Sets HardBrake Error
+
+    // if (APPSDisconnectedError) {
+    //     Serial.println("APPS Disconnected Error");
+    // }
+    // if (brakeDisconnectedError) {
+    //     Serial.println("Brake Disconnected Error");
+    // }
+    // if (APPSPlausibilityError) {
+    //     Serial.println("APPS Plausibility Error");
+    // }
+    // if (brakePlausibilityError) {
+    //     Serial.println("Brake Plausibility Error");
+    // }
+    // if (hardBrakeError) {
+    //     Serial.println("Hard Brake Error");
+    // }
+
     float return_val;
-
-    checkAPPSConnected();       // Sets APPSDisconnected Error
-    checkBrakesConnected();     // Sets BrakesDisconnected Error
-
-    checkAPPSPlausibility();    // Sets APPSPlausibility Error
-    checkBrakesPlausibility();  // Sets BrakesPlausibility Error
-
-    checkHardBrake();           // Sets HardBrake Error
-
-    if(APPSDisconnectedError){
-        Serial.println("APPS Disconnected Error");
-    }
-    if(brakeDisconnectedError){
-        Serial.println("Brake Disconnected Error");
-    }
-    if(APPSPlausibilityError){
-        Serial.println("APPS Plausibility Error");
-    }
-    if(brakePlausibilityError){
-        Serial.println("Brake Plausibility Error");
-    }
-    if(hardBrakeError){
-        Serial.println("Hard Brake Error");
-    }
 
     if (isCriticalError() || hardBrakeError) {
         return_val = 0.0;
@@ -119,19 +117,11 @@ float ThrottleManager::getTorqueRequestFraction() {
 
 void ThrottleManager::checkBrakesPlausibility() {
     uint16_t bp1_ints = getBrakePressure1();
-    Task::delay(10);
     uint16_t bp2_ints = getBrakePressure2();
-    
-    // Serial.print(bp1);
-    // Serial.print("\t");
-    // Serial.println(bp2);
 
-    float bp1 = (bp1_ints-BRAKEPRESSURE1_AVERAGE_START)/BRAKEPRESSURE1_RANGE;
-    float bp2 = (bp2_ints-BRAKEPRESSURE2_AVERAGE_START)/BRAKEPRESSURE2_RANGE;
-    // Serial.print(bp1);
-    // Serial.print("\t");
-    // Serial.println(bp2);
-    // if ((bp1 > BRAKEPRESSURE_FACTOR * bp2 + BRAKE_RAW_PLAUSIBILITY_ADC_VALUE) || (bp1 < BRAKEPRESSURE_FACTOR * bp2 - BRAKE_RAW_PLAUSIBILITY_ADC_VALUE)) {
+    float bp1 = (bp1_ints - BRAKEPRESSURE1_AVERAGE_START) / BRAKEPRESSURE1_RANGE;
+    float bp2 = (bp2_ints - BRAKEPRESSURE2_AVERAGE_START) / BRAKEPRESSURE2_RANGE;
+
     if ((bp1 > bp2 + BRAKE_PLAUSIBILITY_FRACTION) || (bp1 < bp2 - BRAKE_PLAUSIBILITY_FRACTION)) {
         currentBrakeMillis = Task::millis();
 
@@ -156,7 +146,7 @@ void ThrottleManager::checkBrakesConnected() {
     uint16_t val2 = getBrakePressure2();
     if (val1 < BRAKEPRESSURE1_LOW_ADC || val1 > BRAKEPRESSURE1_HIGH_ADC || val2 < BRAKEPRESSURE2_LOW_ADC || val2 > BRAKEPRESSURE2_HIGH_ADC) {
         brakeDisconnectedError = true;
-    } else{
+    } else {
         brakeDisconnectedError = false; // TEMPORARY RESET
     }
 }
@@ -169,10 +159,7 @@ float ThrottleManager::getBrakeRegenFraction() {
         Task::delay(10);
         regen_fraction = -1.0 * BRAKE_REGEN_SENSITIVITY * (getBrakePressure1() - BRAKEPRESSURE1_MIN_THRESHOLD) / regen_range;
     }
-    // if (true) {
-    //     Task::delay(10);
-    //     regen_fraction = -1.0 * BRAKE_REGEN_SENSITIVITY * (getBrakePressure1() - BRAKEPRESSURE1_MIN_THRESHOLD) / regen_range;
-    // }
+
     regen_fraction = std::clamp(regen_fraction, -0.85f, 0.0f);
     return regen_fraction;
 }
@@ -186,11 +173,7 @@ int ThrottleManager::getBrakePressure2() {
 }
 
 bool ThrottleManager::brakesOn() {
-    if (getBrakePressure1() > BRAKEPRESSURE1_MIN_THRESHOLD) {
-        return true;
-    } else {
-        return false;
-    }
+    return getBrakePressure1() > BRAKEPRESSURE1_MIN_THRESHOLD;
 }
 
 }

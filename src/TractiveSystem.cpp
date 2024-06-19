@@ -2,6 +2,7 @@
 #include "car.hpp"
 #include "logging/log.hpp"
 #include "pins.hpp"
+#include <algorithm>
 
 namespace wrvcu {
 
@@ -73,7 +74,7 @@ void TractiveSystem::loop() {
             break;
 
         case TSStates::WaitR2D:
-            if (battery.contactorState == ContactorStates::Active && sdcClosed() && brakesOn() && startPressed()) {
+            if (battery.contactorState == ContactorStates::Active && sdcClosed() && throttle.brakesOn() && startPressed()) {
                 inverter.start();
                 state = TSStates::StartInverter;
                 INFO("Starting Inverter");
@@ -126,9 +127,9 @@ void TractiveSystem::loop() {
 }
 
 void TractiveSystem::DriveSequence() {
-    if (throttle.isCriticalError()) {
-        state = TSStates::Error;
-    }
+    // if (throttle.isCriticalError()) {
+    //     state = TSStates::Error;
+    // }
 
     // ADD RPM OR SPEED BUTTON CHECK
 
@@ -137,51 +138,52 @@ void TractiveSystem::DriveSequence() {
 
     float driveTorque = throttle.getTorqueRequestFraction();
     float brakeTorque = throttle.getBrakeRegenFraction();
-    // float requestedTorque = 0.0;
-    // if (inRegenMode) {
-    //     requestedTorque = driveTorque + brakeTorque;
-    // } else {
-    //     requestedTorque = max(0, driveTorque);
-    // }
-    float requestedTorque = max(0, driveTorque);
 
-    // InverterRequestedTorque = requestedTorque * INVERTER_MAXMIMUM_TORQUE_REQUEST;
-    InverterRequestedTorque = requestedTorque * 200;
+    int16_t maxDriveTorqueRequest = calculateMaxDriveTorque() / INVERTER_NM_PER_UNIT; // Positive
+    int16_t maxRegenTorqueRequest = calculateMaxRegenTorque() / INVERTER_NM_PER_UNIT; // Negative
 
+    if (maxDriveTorqueRequest < 0.0 || maxRegenTorqueRequest > 0.0) {
+        ERROR("max drive or regen torque calculation was invalid!");
+        state = TSStates::Error;
+    }
 
+    float requestedTorque = 0.0;
+    if (inRegenMode) {
+        float speedScale = 0;
+        if (inverter.rpm < REGEN_DERATE_RPM && inverter.rpm > REGEN_MIN_RPM) {
+            float speedScale = std::clamp(map(inverter.rpm, REGEN_MIN_RPM, REGEN_DERATE_RPM, 1, 0), 0l, 1l);
+        } else if (inverter.rpm > REGEN_DERATE_RPM) {
+            speedScale = 1.0;
+        }
 
-    // int16_t maxDriveTorqueRequest = calculateMaxDriveTorque() / INVERTER_NM_PER_UNIT; // Positive
-    // int16_t maxRegenTorqueRequest = calculateMaxRegenTorque() / INVERTER_NM_PER_UNIT; // Negative
+        // requestedTorque = driveTorque + brakeTorque;
+        if (requestedTorque < 0.0) {
+            // derate requested regen as we slow down
+            requestedTorque *= speedScale;
+        }
 
-    // if (maxDriveTorqueRequest < 0.0 || maxRegenTorqueRequest > 0.0) {
-    //     state = TSStates::Error;
-    // }
+    } else {
+        requestedTorque = max(0, driveTorque);
+    }
 
-    // if (inRegenMode /*&& inverterspeedinRPM>250*/) {
+    InverterRequestedTorque = requestedTorque * INVERTER_MAXMIMUM_TORQUE_REQUEST;
+
+    // if (inRegenMode && inverter.rpm > REGEN_MIN_RPM) {
     //     InverterRequestedTorque = std::clamp(InverterRequestedTorque, maxRegenTorqueRequest, maxDriveTorqueRequest);
     // } else {
     //     InverterRequestedTorque = std::clamp(InverterRequestedTorque, (int16_t)0, maxDriveTorqueRequest);
     // }
 
-    
-
+    // Sanity checks (for safety)
     if (InverterRequestedTorque > INVERTER_MAXMIMUM_TORQUE_REQUEST) {
         InverterRequestedTorque = INVERTER_MAXMIMUM_TORQUE_REQUEST;
     }
     if (InverterRequestedTorque < INVERTER_MINIMUM_TORQUE_REQUEST) {
         InverterRequestedTorque = INVERTER_MINIMUM_TORQUE_REQUEST;
     }
-
-    // Serial.println("-------------------------------------- ");
-    // Serial.print("APPS Torque: ");
-    // Serial.print(driveTorque);
-    // Serial.print("\tBrake Torque: ");
-    // Serial.println(brakeTorque);
-
-    // Serial.print("Requested Torque: ");
-    // Serial.print(requestedTorque);
-    // Serial.print("\tTo Inverter: ");
-    // Serial.println(InverterRequestedTorque);
+    if (InverterRequestedTorque < 0 && (!inRegenMode || inverter.rpm < REGEN_MIN_RPM)) {
+        InverterRequestedTorque = 0;
+    }
 
     inverter.sendTorque(InverterRequestedTorque);
 }
@@ -209,15 +211,17 @@ bool TractiveSystem::startPressed() {
 }
 
 bool TractiveSystem::checkRegenButtonState() {
-    bool pres = digitalRead(REGEN_BUTTON_PIN);
-    if (pres) {
-        regenButtonHeld = true;
-    } else if (!pres && regenButtonHeld) {
-        regenButtonHeld = false;
-        inRegenMode = !inRegenMode;
-    }
+    // bool pres = digitalRead(REGEN_BUTTON_PIN);
+    // if (pres) {
+    //     regenButtonHeld = true;
+    // } else if (!pres && regenButtonHeld) {
+    //     regenButtonHeld = false;
+    //     inRegenMode = !inRegenMode;
+    // }
 
-    return pres;
+    // return pres;
+    inRegenMode = false;
+    return false;
 }
 
 void TractiveSystem::setR2DLED(bool out) {
@@ -233,50 +237,19 @@ TSStates TractiveSystem::getState() {
 }
 
 float TractiveSystem::calculateMaxRegenTorque() {
-    // float inverter_speed = inverter_rpm * RPM_TO_RADS_FACTOR;
-    float inverter_speed = 0.0;
+    float inverter_speed = inverter.rpm * RPM_TO_RADS_FACTOR;
 
-    float max_torque = -1.0 * BATTERY_VOLTAGE * battery.maxChargeCurrent / inverter_speed;
+    float max_torque = -1.0 * MAX_BATTERY_VOLTAGE * battery.maxChargeCurrent / inverter_speed;
 
     return max_torque;
 }
 
 float TractiveSystem::calculateMaxDriveTorque() {
-    // float inverter_speed = inverter_rpm * RPM_TO_RADS_FACTOR;
-    float inverter_speed = 0.0;
+    float inverter_speed = inverter.rpm * RPM_TO_RADS_FACTOR;
 
-    float max_torque = BATTERY_VOLTAGE * battery.maxDischargeCurrent / inverter_speed;
+    float max_torque = MAX_BATTERY_VOLTAGE * battery.maxDischargeCurrent / inverter_speed;
 
     return max_torque;
-}
-
-void TractiveSystem::test_init() {
-    mutex.init();
-
-    // initialize outputs to off
-    setR2DLED(false);
-    setBuzzer(false);
-
-    task.start(
-        [this] { test_loop(); }, TRACTIVE_SYSTEM_TASK_PRIORITY, "TractiveSystem_Task");
-}
-
-void TractiveSystem::test_loop() {
-    while (true) {
-        mutex.take();
-        DriveSequence();
-        // throttle.checkBrakesPlausibility();
-        // Serial.print("APPS 1: ");
-        // Serial.print(throttle.APPS1.read());
-        // Serial.print("\tAPPS 2: ");
-        // Serial.println(throttle.APPS2.read());
-        // Serial.print("APPS 1: ");
-        // Serial.print(throttle.APPS1.getSaturatedFraction());
-        // Serial.print("\tAPPS 2: ");
-        // Serial.println(throttle.APPS2.getSaturatedFraction());
-        mutex.give();
-        Task::delay(10);
-    }
 }
 
 }
