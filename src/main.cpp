@@ -1,3 +1,4 @@
+#include "SD.h"
 #include "arduino_freertos.h"
 #include "can/CANController_T4.hpp"
 #include "can/CANOpenHost.hpp"
@@ -63,7 +64,11 @@ void setup() {
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
 
+    SD.begin(BUILTIN_SDCARD);
+
     setLogLevel(LogLocation::STDOUT, LogLevel::DEBUG);
+    setLogLevel(LogLocation::FILE, LogLevel::DEBUG);
+    setLogLevel(LogLocation::RADIO, LogLevel::DEBUG);
 
     // ---------- start tasks ----------
 

@@ -1,5 +1,6 @@
 #include "logging/log.hpp"
 #include "SD.h"
+#include "TimeLib.h"
 #include <rtos/queue.hpp>
 #include <rtos/task.hpp>
 
@@ -171,6 +172,18 @@ void writeLogToSerial(LogLevel level, const char* module, const char* message) {
 
 // ------------------ Setup and run ------------------
 
+time_t getTeensyTime() {
+    return Teensy3Clock.get();
+}
+void setTeensyTime(int hour, int min, int sec, int day, int month, int year) {
+    setTime(hour, min, sec, day, month, year);
+    Teensy3Clock.set(now());
+}
+
+void timeInit() {
+    setSyncProvider(getTeensyTime);
+}
+
 void loggingLoop() {
     while (true) {
         LogMessage msg = loggingQueue.dequeue(TIMEOUT_MAX);
@@ -180,7 +193,7 @@ void loggingLoop() {
         }
 
         if (msg.level >= getLogLevel(LogLocation::FILE)) {
-            // writeLogToFlash(msg.level, msg.module, msg.message);
+            writeLogToFlash(msg.level, msg.module, msg.message);
         }
 
         if (msg.level >= getLogLevel(LogLocation::RADIO)) {
@@ -192,6 +205,7 @@ void loggingLoop() {
 }
 
 void loggingInit() {
+    timeInit();
     loggingQueue.init();
 
     // TODO: rename with date

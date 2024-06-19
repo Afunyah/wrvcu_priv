@@ -17,6 +17,7 @@ void TractiveSystem::init() {
 }
 
 void TractiveSystem::loop() {
+    uint32_t prev = Task::millis();
     while (true) {
 
         // If the SDC opens, and the inverter is running, we want to shut down the inverter immediately.
@@ -127,7 +128,7 @@ void TractiveSystem::loop() {
 
         mutex.give();
 
-        Task::delay(10);
+        Task::delay_until(&prev, 10);
     }
 }
 
@@ -177,9 +178,8 @@ bool TractiveSystem::brakesOn() {
     }
 }
 
-
 bool TractiveSystem::checkBrakesPlausibility() {
-    if (getBrakePressure1() > 2*getBrakePressure2() + BRAKE_PLAUSIBILITY_FRACTION*ADC_RESOLUTION || getBrakePressure1() < 2*getBrakePressure2() - BRAKE_PLAUSIBILITY_FRACTION*ADC_RESOLUTION ) {
+    if (getBrakePressure1() > 2 * getBrakePressure2() + BRAKE_PLAUSIBILITY_FRACTION * ADC_RESOLUTION || getBrakePressure1() < 2 * getBrakePressure2() - BRAKE_PLAUSIBILITY_FRACTION * ADC_RESOLUTION) {
         return false;
     } else {
         return true;
