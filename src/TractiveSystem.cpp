@@ -73,7 +73,7 @@ void TractiveSystem::loop() {
             break;
 
         case TSStates::WaitR2D:
-            if (battery.contactorState == ContactorStates::Active && sdcClosed() && /*brakesOn() &&*/ startPressed()) {
+            if (battery.contactorState == ContactorStates::Active && sdcClosed() && brakesOn() && startPressed()) {
                 inverter.start();
                 state = TSStates::StartInverter;
                 INFO("Starting Inverter");

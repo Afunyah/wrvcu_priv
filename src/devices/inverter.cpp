@@ -42,7 +42,7 @@ void Inverter::stop() {
 }
 
 void Inverter::sendTorque(int16_t torque) {
-    int sentTorque = torque * -1;
+    int sentTorque = torque * polarityFactor;
     uint8_t data[2] = { (uint8_t)(sentTorque & 0xff), (uint8_t)(sentTorque >> 8) };
     device.sendPDO(INVERTER_RPDO1, data);
 };
@@ -132,14 +132,25 @@ void Inverter::loop() {
             PDOMessage pdoMsg = pdoQueue.dequeue(0);
 
             // Read Errors
-            // if (pdoMsg.cobID == 0x180) {
-            //     int newError = pdoMsg.data[4] | (pdoMsg.data[5] << 8);
-            //     if (newError != errorCode){
-            //         ERROR("Inverter: Got error code");
-            //         printf("Error code: %x\n", newError);
-            //         errorCode = newError;
-            //     }
-            // }
+            if (pdoMsg.cobID == 0x180) {
+                int newWarning = pdoMsg.data[0] | (pdoMsg.data[1] << 8);
+                if (newWarning != warningCode) {
+                    ERROR("Inverter: Got warning code");
+                    printf("Warning code: %x\n", newWarning);
+                    warningCode = newWarning;
+                }
+
+                int newError = pdoMsg.data[2] | (pdoMsg.data[3] << 8);
+                if (newError != errorCode) {
+                    ERROR("Inverter: Got error code");
+                    printf("Error code: %x\n", newError);
+                    errorCode = newError;
+                }
+            }
+
+            else if (pdoMsg.cobID == 0x480) {
+                rpm = polarityFactor * (pdoMsg.data[1] | (pdoMsg.data[2] << 8) | (pdoMsg.data[3] << 16) | (pdoMsg.data[4] << 24));
+            }
         }
 
         if (errorCode != 0) {

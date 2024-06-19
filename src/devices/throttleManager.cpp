@@ -75,7 +75,7 @@ float ThrottleManager::getTorqueRequestFraction() {
         Serial.println("APPS DISCONNECTED");
     }
     checkAPPSPlausibility();
-    // checkHardBrake();
+    checkHardBrake();
     return getThrottleFraction();
 }
 

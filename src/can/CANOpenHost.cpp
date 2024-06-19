@@ -14,7 +14,7 @@ void CANOpenHost::loop() {
         sendSync();
         sendHeartbeat();
 
-        Task::delay(50);
+        Task::delay(10);
     }
 }
 

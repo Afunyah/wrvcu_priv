@@ -39,9 +39,11 @@ public:
     uint16_t errorCode = 0;
     uint16_t warningCode = 0;
 
-    int16_t rpm;
+    int32_t rpm;
     int16_t motorTemp;
     int16_t controllerTemp;
+
+    int32_t polarityFactor = -1;
 
     void init(AbstractCANController* ican, uint8_t inodeID);
 
