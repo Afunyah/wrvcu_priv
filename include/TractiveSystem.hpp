@@ -21,13 +21,14 @@ protected:
     uint32_t contactorCloseStart = 0;
     uint32_t buzzerStart = 0;
 
-    bool inRegenMode = false;
     bool regenButtonHeld = false;
 
     Mutex mutex;
     Task task;
 
 public:
+    bool inRegenMode = false;
+
     void init();
     void loop();
 
@@ -35,7 +36,7 @@ public:
     bool tsasPressed();
     bool startPressed();
     bool checkRegenButtonState();
-    
+
     void setR2DLED(bool state);
     void setBuzzer(bool state);
 

@@ -156,7 +156,6 @@ float ThrottleManager::getBrakeRegenFraction() {
     float regen_fraction = 0.0;
 
     if (!isCriticalError() && brakesOn() && !hardBrakeError) {
-        Task::delay(10);
         regen_fraction = -1.0 * BRAKE_REGEN_SENSITIVITY * (getBrakePressure1() - BRAKEPRESSURE1_MIN_THRESHOLD) / regen_range;
     }
 

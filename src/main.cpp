@@ -1,10 +1,12 @@
 #include "SD.h"
 #include "arduino_freertos.h"
 #include "can/CANController_T4.hpp"
+#include "can/CANMessage.hpp"
 #include "can/CANOpenHost.hpp"
 #include "car.hpp"
 #include "constants.hpp"
 #include "pins.hpp"
+#include "vcu_log.h"
 
 // vehicle globals
 namespace wrvcu {
@@ -26,6 +28,33 @@ void test_can();
 void test_inverter();
 
 using namespace wrvcu;
+
+static wrvcu::Task canLoggingTask;
+void canLoggingLoop() {
+    while (true) {
+        vcu_log_vcu_log_t log_msg;
+
+        log_msg.vcu_state = static_cast<int>(ts.getState());
+        log_msg.scmon = ts.sdcClosed();
+        log_msg.apps_disconnect = throttle.APPSDisconnectedError;
+        log_msg.apps_plausibility = throttle.APPSPlausibilityError;
+        log_msg.brake_disconnect = throttle.brakeDisconnectedError;
+        log_msg.brake_plausibility = throttle.brakePlausibilityError;
+        log_msg.brake_hard = throttle.hardBrakeError;
+        log_msg.regen_active = ts.inRegenMode;
+        log_msg.apps_raw = vcu_log_vcu_log_apps_raw_encode(throttle.getThrottleFraction() * INVERTER_MAXMIMUM_TORQUE_REQUEST);
+        log_msg.brake_raw = throttle.getBrakePressure1();
+
+        CANMessage msg;
+        msg.id = VCU_LOG_VCU_LOG_FRAME_ID;
+        msg.len = VCU_LOG_VCU_LOG_LENGTH;
+        vcu_log_vcu_log_pack((uint8_t*)&msg.data, &log_msg, 8);
+
+        can1.send(msg);
+
+        wrvcu::Task::delay(100);
+    }
+}
 
 void setup() {
     Serial.begin(115200); // wait up to 2 seconds for serial connection
@@ -84,6 +113,8 @@ void setup() {
     throttle.init(&adc);
 
     ts.init();
+
+    canLoggingTask.start([] { canLoggingLoop(); }, TASK_PRIORITY_DEFAULT - 3, "CAN_Logging_Task");
 
     startScheduler();
 
