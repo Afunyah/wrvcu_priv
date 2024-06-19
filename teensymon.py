@@ -27,6 +27,10 @@ BOLD = "\033[1m"
 UNDERLINE = "\033[4m"
 
 
+log_strs = ["DEBUG", "INFO", "WARNING", "ERROR"]
+colours = [OKGREEN, OKBLUE, WARNING, FAIL]
+
+
 def print_line(line: bytes):
     decoded = line.decode("ascii").strip()
 
@@ -48,6 +52,17 @@ def print_line(line: bytes):
                 )
                 print(OKBLUE + res.stdout.decode().strip() + ENDC)
                 break
+
+    elif any(x in decoded for x in log_strs):
+        log_str = None
+        colour = None
+        for i, x in enumerate(log_strs):
+            if x in decoded:
+                log_str = x
+                colour = colours[i]
+
+        l, m, r = decoded.partition(log_str)
+        print(l + colour + m + ENDC + r)
 
     else:
         print(decoded)
