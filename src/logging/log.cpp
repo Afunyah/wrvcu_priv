@@ -224,6 +224,7 @@ void loggingInit() {
     }
 
     logFile = SD.open("log.txt", FILE_WRITE);
+    logFile.printf("Timestamp: %04d/%02d/%02d %02d:%02d:%02d\n", year(), month(), day(), hour(), minute(), second());
 
     loggingTask.start([] { loggingLoop(); }, LOGGING_TASK_PRIORITY, "Logging_Task");
 }
