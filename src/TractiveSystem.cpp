@@ -243,7 +243,7 @@ float TractiveSystem::calculateMaxRegenTorque() {
     if (inverter.rpm > -10) {
         return 0;
     } else {
-        return -1.0 * MAX_BATTERY_VOLTAGE * battery.maxChargeCurrent / inverter_speed;
+        return -1.0 * battery.packVoltage * battery.maxChargeCurrent / inverter_speed;
     }
 }
 
@@ -254,7 +254,7 @@ float TractiveSystem::calculateMaxDriveTorque() {
     if (inverter.rpm < 10) {
         return INVERTER_MAXMIMUM_TORQUE_REQUEST * INVERTER_NM_PER_UNIT;
     } else {
-        return MAX_BATTERY_VOLTAGE * battery.maxDischargeCurrent / inverter_speed;
+        return battery.packVoltage * battery.maxDischargeCurrent / inverter_speed;
     }
 }
 
