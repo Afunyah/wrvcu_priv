@@ -29,8 +29,8 @@ void test_throttle_task() {
         // Serial.print("APPS 1: ");
         // Serial.print(throttleT.APPS1.getSaturatedFraction());
         // Serial.print("\tAPPS 2: ");
-        // Serial.println(throttleT.APPS2.getSaturatedFraction());
-        Serial.println(throttleT.getBrakeRegenFraction());
+        throttleT.APPS1.getSaturatedFraction();
+        // Serial.println(throttleT.getBrakeRegenFraction());
 
         // in tractivesystem.cpp
         // Serial.print("Brake 1: ");

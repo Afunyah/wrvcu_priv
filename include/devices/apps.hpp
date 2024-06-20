@@ -1,11 +1,21 @@
 #pragma once
 
 #include "ADC.hpp"
+#include <queue>
+#include "constants.hpp"
 
 namespace wrvcu {
 
 class APPS {
 protected:
+    uint16_t window_total = 0;
+    int window_index = 0;             // the index of the current reading
+    uint16_t window_array[APPS_WINDOW];     // the window_array from the analog input
+
+    std::queue<uint16_t> window_queue;
+
+    bool useSmooth = true;
+
     float angle_offset;
     float angle_range;
 

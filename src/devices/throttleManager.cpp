@@ -13,7 +13,7 @@ void ThrottleManager::checkAPPSConnected() {
     if (!APPS1.isConnected() || !APPS2.isConnected()) {
         APPSDisconnectedError = true;
     } else {
-        APPSDisconnectedError = false; // TEMPORARY RESET
+        // APPSDisconnectedError = false; // TEMPORARY RESET
     }
 }
 
@@ -32,7 +32,7 @@ void ThrottleManager::checkAPPSPlausibility() {
     } else {
         if (plausibilityTimerStarted) {
             plausibilityTimerStarted = false;
-            APPSPlausibilityError = false; // TEMPORARY RESET
+            // APPSPlausibilityError = false; // TEMPORARY RESET
         }
     }
 }
@@ -136,7 +136,7 @@ void ThrottleManager::checkBrakesPlausibility() {
     } else {
         if (brakePlausibilityTimerStarted) {
             brakePlausibilityTimerStarted = false;
-            brakePlausibilityError = false; // TEMPORARY RESET
+            // brakePlausibilityError = false; // TEMPORARY RESET
         }
     }
 }
@@ -147,7 +147,7 @@ void ThrottleManager::checkBrakesConnected() {
     if (val1 < BRAKEPRESSURE1_LOW_ADC || val1 > BRAKEPRESSURE1_HIGH_ADC || val2 < BRAKEPRESSURE2_LOW_ADC || val2 > BRAKEPRESSURE2_HIGH_ADC) {
         brakeDisconnectedError = true;
     } else {
-        brakeDisconnectedError = false; // TEMPORARY RESET
+        // brakeDisconnectedError = false; // TEMPORARY RESET
     }
 }
 

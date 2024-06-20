@@ -156,7 +156,7 @@ void TractiveSystem::DriveSequence() {
             speedScale = 1.0;
         }
 
-        // requestedTorque = driveTorque + brakeTorque;
+        requestedTorque = driveTorque + brakeTorque;
         if (requestedTorque < 0.0) {
             // derate requested regen as we slow down
             requestedTorque *= speedScale;
