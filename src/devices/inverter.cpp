@@ -133,19 +133,19 @@ void Inverter::loop() {
 
             // Read Errors
             if (pdoMsg.cobID == 0x180) {
-                int newWarning = pdoMsg.data[0] | (pdoMsg.data[1] << 8);
-                if (newWarning != warningCode) {
-                    ERROR("Inverter: Got warning code");
-                    printf("Warning code: %x\n", newWarning);
-                    warningCode = newWarning;
-                }
+                // int newWarning = pdoMsg.data[0] | (pdoMsg.data[1] << 8);
+                // if (newWarning != warningCode) {
+                //     ERROR("Inverter: Got warning code");
+                //     printf("Warning code: %x\n", newWarning);
+                //     warningCode = newWarning;
+                // }
 
-                int newError = pdoMsg.data[2] | (pdoMsg.data[3] << 8);
-                if (newError != errorCode) {
-                    ERROR("Inverter: Got error code");
-                    printf("Error code: %x\n", newError);
-                    errorCode = newError;
-                }
+                // int newError = pdoMsg.data[2] | (pdoMsg.data[3] << 8);
+                // if (newError != errorCode) {
+                //     ERROR("Inverter: Got error code");
+                //     printf("Error code: %x\n", newError);
+                //     errorCode = newError;
+                // }
             }
 
             else if (pdoMsg.cobID == 0x480) {

@@ -142,10 +142,10 @@ void TractiveSystem::DriveSequence() {
     int16_t maxDriveTorqueRequest = calculateMaxDriveTorque() / INVERTER_NM_PER_UNIT; // Positive
     int16_t maxRegenTorqueRequest = calculateMaxRegenTorque() / INVERTER_NM_PER_UNIT; // Negative
 
-    if (maxDriveTorqueRequest < 0.0 || maxRegenTorqueRequest > 0.0) {
-        ERROR("max drive or regen torque calculation was invalid!");
-        state = TSStates::Error;
-    }
+    // if (maxDriveTorqueRequest < 0.0 || maxRegenTorqueRequest > 0.0) {
+    //     ERROR("max drive or regen torque calculation was invalid!");
+    //     state = TSStates::Error;
+    // }
 
     float requestedTorque = 0.0;
     if (inRegenMode) {

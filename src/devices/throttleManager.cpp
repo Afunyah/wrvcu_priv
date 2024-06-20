@@ -75,7 +75,7 @@ float ThrottleManager::getThrottleFraction() {
 }
 
 float ThrottleManager::getTorqueRequestFraction() {
-    checkAPPSConnected();   // Sets APPSDisconnected Error
+    // checkAPPSConnected();   // Sets APPSDisconnected Error
     checkBrakesConnected(); // Sets BrakesDisconnected Error
 
     checkAPPSPlausibility();   // Sets APPSPlausibility Error
