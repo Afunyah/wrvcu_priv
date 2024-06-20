@@ -93,32 +93,32 @@ void setup() {
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
 
-    // SD.begin(BUILTIN_SDCARD);
+    SD.begin(BUILTIN_SDCARD);
 
-    // setLogLevel(LogLocation::STDOUT, LogLevel::DEBUG);
-    // setLogLevel(LogLocation::FILE, LogLevel::DEBUG);
-    // setLogLevel(LogLocation::RADIO, LogLevel::DEBUG);
+    setLogLevel(LogLocation::STDOUT, LogLevel::DEBUG);
+    setLogLevel(LogLocation::FILE, LogLevel::DEBUG);
+    setLogLevel(LogLocation::RADIO, LogLevel::DEBUG);
 
     // // ---------- start tasks ----------
 
-    // loggingInit();
+    loggingInit();
 
-    // can1.init(TASK_PRIORITY_DEFAULT + 3);
-    // canOpen.init((&can1));
-    // inverter.init((&can1), 1);
+    can1.init(TASK_PRIORITY_DEFAULT + 3);
+    canOpen.init((&can1));
+    inverter.init((&can1), 1);
 
-    // battery.init((&can1));
+    battery.init((&can1));
 
-    // adc.init(ADC_CS, &SPI, false);
-    // throttle.init(&adc);
+    adc.init(ADC_CS, &SPI, false);
+    throttle.init(&adc);
 
-    // ts.init();
+    ts.init();
 
-    // canLoggingTask.start([] { canLoggingLoop(); }, TASK_PRIORITY_DEFAULT - 3, "CAN_Logging_Task");
+    canLoggingTask.start([] { canLoggingLoop(); }, TASK_PRIORITY_DEFAULT - 3, "CAN_Logging_Task");
 
-    // startScheduler();
+    startScheduler();
 
-    test_throttle_func();
+    // test_throttle_func();
 }
 
 void loop() {}
