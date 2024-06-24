@@ -239,22 +239,24 @@ TSStates TractiveSystem::getState() {
 float TractiveSystem::calculateMaxRegenTorque() {
     float inverter_speed = inverter.rpm * RPM_TO_RADS_FACTOR;
 
-    // Don't divide by 0
-    if (inverter.rpm > -10) {
-        return 0;
+    // Don't divide by 0 or a negative number!
+    if (inverter.rpm > REGEN_MIN_RPM) {
+        return 0.0;
     } else {
-        return -1.0 * battery.packVoltage * battery.maxChargeCurrent / inverter_speed;
+        float trq = -1.0 * battery.packVoltage * battery.maxChargeCurrent / inverter_speed; // calculate maximum regen torque using power
+        return std::clamp(trq, (float)(INVERTER_MINIMUM_TORQUE_REQUEST * INVERTER_NM_PER_UNIT), 0.0f);
     }
 }
 
 float TractiveSystem::calculateMaxDriveTorque() {
     float inverter_speed = inverter.rpm * RPM_TO_RADS_FACTOR;
 
-    // Don't divide by 0
+    // Don't divide by 0 or a negative number!
     if (inverter.rpm < 10) {
-        return INVERTER_MAXMIMUM_TORQUE_REQUEST * INVERTER_NM_PER_UNIT;
+        return INVERTER_MAXMIMUM_TORQUE_REQUEST * INVERTER_NM_PER_UNIT; // return maximum torque if rpm < 10
     } else {
-        return battery.packVoltage * battery.maxDischargeCurrent / inverter_speed;
+        float trq = battery.packVoltage * battery.maxDischargeCurrent / inverter_speed;         // calculate maximum driving torque using power
+        return std::min(trq, (float)(INVERTER_MAXMIMUM_TORQUE_REQUEST * INVERTER_NM_PER_UNIT)); // clamp torque to maximum torque request
     }
 }
 
