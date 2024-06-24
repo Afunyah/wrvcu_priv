@@ -237,27 +237,90 @@ TSStates TractiveSystem::getState() {
 }
 
 float TractiveSystem::calculateMaxRegenTorque() {
-    float inverter_speed = inverter.rpm * RPM_TO_RADS_FACTOR;
+    const float POWER_LIMITER_KP = 0.0; // 0.1
+    const float POWER_LIMITER_KI = 0.0; // 0.15
+    const float POWER_LIMITER_DT = 10;
+
+    static float integral = 0.0;
+    static float tLimit = 0.0;
+    static uint32_t lastTime = 0;
+
+    // Limit the rate at which this function is called - for consistent integration
+    if ((Task::millis() - lastTime) < POWER_LIMITER_DT) {
+        return tLimit;
+    } else {
+        lastTime = Task::millis();
+    }
+
+    float inverterSpeed = inverter.rpm * RPM_TO_RADS_FACTOR;
+    float power = battery.packVoltage * battery.terminalCurrent; // positive current is regen
+    float powerLimit = battery.packVoltage * battery.maxChargeCurrent;
 
     // Don't divide by 0 or a negative number!
-    if (inverter.rpm > REGEN_MIN_RPM) {
-        return 0.0;
+    if (inverter.rpm < REGEN_MIN_RPM) {
+        tLimit = 0.0;
     } else {
-        float trq = -1.0 * battery.packVoltage * battery.maxChargeCurrent / inverter_speed; // calculate maximum regen torque using power
-        return std::clamp(trq, (float)(INVERTER_MINIMUM_TORQUE_REQUEST * INVERTER_NM_PER_UNIT), 0.0f);
+        // calculate maximum regen torque using power (p = wt)
+        // "mechanical limiter"
+        float tMech = powerLimit / inverterSpeed;
+
+        // Feedback control loop, measuring actual power vs power limit
+        // "electrical limiter"
+        float tError = std::max(power - powerLimit, 0.0f) / inverterSpeed; // how much torque we are over by
+        integral += (power - powerLimit) / inverterSpeed;                  // non-saturated error so integral can go down
+        integral = std::max(integral, 0.0f);                               // integral can't go below 0, can't increase torque limit
+
+        float tElec = -(POWER_LIMITER_KP * tError + POWER_LIMITER_KI * integral); // positive error means adjust limit backwards
+
+        // clamp torque to maximum torque request
+        tLimit = std::clamp(tMech + tElec, 0.0f, -(float)(INVERTER_MINIMUM_TORQUE_REQUEST * INVERTER_NM_PER_UNIT));
     }
+
+    return -1.0 * tLimit;
 }
 
 float TractiveSystem::calculateMaxDriveTorque() {
-    float inverter_speed = inverter.rpm * RPM_TO_RADS_FACTOR;
+    const float POWER_LIMITER_KP = 0.0; // 0.1
+    const float POWER_LIMITER_KI = 0.0; // 0.15
+    const float POWER_LIMITER_DT = 10;
+
+    static float integral = 0.0;
+    static float tLimit = INVERTER_MAXMIMUM_TORQUE_REQUEST * INVERTER_NM_PER_UNIT;
+    static uint32_t lastTime = 0;
+
+    // Limit the rate at which this function is called - for consistent integration
+    if ((Task::millis() - lastTime) < POWER_LIMITER_DT) {
+        return tLimit;
+    } else {
+        lastTime = Task::millis();
+    }
+
+    float inverterSpeed = inverter.rpm * RPM_TO_RADS_FACTOR;
+    float power = battery.packVoltage * -battery.terminalCurrent; // negative current is drive
+    float powerLimit = battery.packVoltage * battery.maxDischargeCurrent;
 
     // Don't divide by 0 or a negative number!
     if (inverter.rpm < 10) {
-        return INVERTER_MAXMIMUM_TORQUE_REQUEST * INVERTER_NM_PER_UNIT; // return maximum torque if rpm < 10
+        tLimit = INVERTER_MAXMIMUM_TORQUE_REQUEST * INVERTER_NM_PER_UNIT; // return maximum torque if rpm < 10
     } else {
-        float trq = battery.packVoltage * battery.maxDischargeCurrent / inverter_speed;         // calculate maximum driving torque using power
-        return std::min(trq, (float)(INVERTER_MAXMIMUM_TORQUE_REQUEST * INVERTER_NM_PER_UNIT)); // clamp torque to maximum torque request
+
+        // calculate maximum driving torque using power (p = wt)
+        // "mechanical limiter"
+        float tMech = powerLimit / inverterSpeed;
+
+        // Feedback control loop, measuring actual power vs power limit
+        // "electrical limiter"
+        float tError = std::max(power - powerLimit, 0.0f) / inverterSpeed; // how much torque we are over by
+        integral += (power - powerLimit) / inverterSpeed;                  // non-saturated error so integral can go down
+        integral = std::max(integral, 0.0f);                               // integral can't go below 0, can't increase torque limit
+
+        float tElec = -(POWER_LIMITER_KP * tError + POWER_LIMITER_KI * integral); // positive error means adjust limit backwards
+
+        // clamp torque to maximum torque request
+        tLimit = std::clamp(tMech + tElec, 0.0f, (float)(INVERTER_MAXMIMUM_TORQUE_REQUEST * INVERTER_NM_PER_UNIT));
     }
+
+    return tLimit;
 }
 
 }
