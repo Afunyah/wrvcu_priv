@@ -27,10 +27,12 @@ void test_throttle_task() {
 
     while (true) {
         // Serial.print("APPS 1: ");
-        // Serial.print(throttleT.APPS1.getSaturatedFraction());
+        // Serial.print(throttleT.APPS1.read());        
         // Serial.print("\tAPPS 2: ");
-        throttleT.APPS1.getSaturatedFraction();
+        // Serial.println(throttleT.APPS2.read());
+        // throttleT.APPS1.getSaturatedFraction();
         // Serial.println(throttleT.getBrakeRegenFraction());
+        Serial.println(throttleT.getTorqueRequestFraction());
 
         // in tractivesystem.cpp
         // Serial.print("Brake 1: ");

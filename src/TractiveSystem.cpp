@@ -20,6 +20,8 @@ void TractiveSystem::init() {
 void TractiveSystem::loop() {
     uint32_t prev = Task::millis();
     while (true) {
+        // digitalWrite(FANPWM_OUTPUT_PIN, HIGH);
+
 
         // If the SDC opens, and the inverter is running, we want to shut down the inverter immediately.
         if (inverter.state == InverterStates::Drive && (!sdcClosed() || battery.contactorState == ContactorStates::Error)) {
@@ -148,6 +150,9 @@ void TractiveSystem::DriveSequence() {
     // }
 
     float requestedTorque = 0.0;
+    
+    inRegenMode = false; // JUST FOR SAFETY JOSH
+
     if (inRegenMode) {
         float speedScale = 0;
         if (inverter.rpm < REGEN_DERATE_RPM && inverter.rpm > REGEN_MIN_RPM) {
@@ -165,6 +170,8 @@ void TractiveSystem::DriveSequence() {
     } else {
         requestedTorque = max(0, driveTorque);
     }
+
+    
 
     InverterRequestedTorque = requestedTorque * INVERTER_MAXMIMUM_TORQUE_REQUEST;
 

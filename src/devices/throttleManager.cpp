@@ -13,7 +13,7 @@ void ThrottleManager::checkAPPSConnected() {
     if (!APPS1.isConnected() || !APPS2.isConnected()) {
         APPSDisconnectedError = true;
     } else {
-        // APPSDisconnectedError = false; // TEMPORARY RESET
+        APPSDisconnectedError = false; // TEMPORARY RESET
     }
 }
 
@@ -32,7 +32,7 @@ void ThrottleManager::checkAPPSPlausibility() {
     } else {
         if (plausibilityTimerStarted) {
             plausibilityTimerStarted = false;
-            // APPSPlausibilityError = false; // TEMPORARY RESET
+            APPSPlausibilityError = false; // TEMPORARY RESET
         }
     }
 }
@@ -75,7 +75,7 @@ float ThrottleManager::getThrottleFraction() {
 }
 
 float ThrottleManager::getTorqueRequestFraction() {
-    // checkAPPSConnected();   // Sets APPSDisconnected Error
+    checkAPPSConnected();   // Sets APPSDisconnected Error
     checkBrakesConnected(); // Sets BrakesDisconnected Error
 
     checkAPPSPlausibility();   // Sets APPSPlausibility Error
@@ -83,23 +83,23 @@ float ThrottleManager::getTorqueRequestFraction() {
 
     checkHardBrake(); // Sets HardBrake Error
 
-    // if (APPSDisconnectedError) {
-    //     Serial.println("APPS Disconnected Error");
-    // }
-    // if (brakeDisconnectedError) {
-    //     Serial.println("Brake Disconnected Error");
-    // }
-    // if (APPSPlausibilityError) {
-    //     Serial.println("APPS Plausibility Error");
-    // }
-    // if (brakePlausibilityError) {
-    //     Serial.println("Brake Plausibility Error");
-    // }
-    // if (hardBrakeError) {
-    //     Serial.println("Hard Brake Error");
-    // }
+    if (APPSDisconnectedError) {
+        Serial.println("APPS Disconnected Error");
+    }
+    if (brakeDisconnectedError) {
+        Serial.println("Brake Disconnected Error");
+    }
+    if (APPSPlausibilityError) {
+        Serial.println("APPS Plausibility Error");
+    }
+    if (brakePlausibilityError) {
+        Serial.println("Brake Plausibility Error");
+    }
+    if (hardBrakeError) {
+        Serial.println("Hard Brake Error");
+    }
 
-    float return_val;
+    float return_val = 0.0;
 
     if (isCriticalError() || hardBrakeError) {
         return_val = 0.0;
@@ -136,7 +136,7 @@ void ThrottleManager::checkBrakesPlausibility() {
     } else {
         if (brakePlausibilityTimerStarted) {
             brakePlausibilityTimerStarted = false;
-            // brakePlausibilityError = false; // TEMPORARY RESET
+            brakePlausibilityError = false; // TEMPORARY RESET
         }
     }
 }
@@ -147,7 +147,7 @@ void ThrottleManager::checkBrakesConnected() {
     if (val1 < BRAKEPRESSURE1_LOW_ADC || val1 > BRAKEPRESSURE1_HIGH_ADC || val2 < BRAKEPRESSURE2_LOW_ADC || val2 > BRAKEPRESSURE2_HIGH_ADC) {
         brakeDisconnectedError = true;
     } else {
-        // brakeDisconnectedError = false; // TEMPORARY RESET
+        brakeDisconnectedError = false; // TEMPORARY RESET
     }
 }
 
