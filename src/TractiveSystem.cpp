@@ -135,7 +135,7 @@ void TractiveSystem::DriveSequence() {
 
     // ADD RPM OR SPEED BUTTON CHECK
 
-    checkRegenButtonState();
+    // checkRegenButtonState(); // SHOULD NOT BE HERE
     int16_t InverterRequestedTorque = 0.0;
 
     float driveTorque = throttle.getTorqueRequestFraction();
@@ -218,17 +218,17 @@ bool TractiveSystem::startPressed() {
 }
 
 bool TractiveSystem::checkRegenButtonState() {
-    // bool pres = digitalRead(REGEN_BUTTON_PIN);
-    // if (pres) {
-    //     regenButtonHeld = true;
-    // } else if (!pres && regenButtonHeld) {
-    //     regenButtonHeld = false;
-    //     inRegenMode = !inRegenMode;
-    // }
+    bool pres = digitalRead(REGEN_BUTTON_PIN);
+    if (pres) {
+        regenButtonHeld = true;
+    } else if (!pres && regenButtonHeld) {
+        regenButtonHeld = false;
+        inRegenMode = !inRegenMode;
+    }
 
-    // return pres;
-    inRegenMode = false;
-    return false;
+    // inRegenMode = false;
+    return pres;
+    // return false;
 }
 
 void TractiveSystem::setR2DLED(bool out) {
