@@ -20,6 +20,8 @@ CANOpenHost canOpen;
 
 ADC adc;
 
+Display display;
+
 }
 
 void test_throttle_func();
@@ -58,6 +60,7 @@ void canLoggingLoop() {
 
 void setup() {
     Serial.begin(115200); // wait up to 2 seconds for serial connection
+    Serial7.begin(115200); // For the display
 
     if (CrashReport) {
         Serial.print(CrashReport);
@@ -112,6 +115,7 @@ void setup() {
     adc.init(ADC_CS, &SPI, false);
     throttle.init(&adc);
 
+    display.init();
     ts.init();
 
     canLoggingTask.start([] { canLoggingLoop(); }, TASK_PRIORITY_DEFAULT - 3, "CAN_Logging_Task");

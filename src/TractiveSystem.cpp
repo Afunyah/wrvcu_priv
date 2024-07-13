@@ -20,7 +20,6 @@ void TractiveSystem::init() {
 void TractiveSystem::loop() {
     uint32_t prev = Task::millis();
     while (true) {
-        // digitalWrite(FANPWM_OUTPUT_PIN, HIGH);
 
 
         // If the SDC opens, and the inverter is running, we want to shut down the inverter immediately.
