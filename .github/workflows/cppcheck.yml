@@ -1,0 +1,17 @@
+name: cppcheck
+
+on: [pull_request]
+jobs:
+  linting:
+    name: cppcheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Install/load cached cppcheck
+        uses: awalsh128/cache-apt-pkgs-action@v1.4.2
+        with:
+          packages: cppcheck
+          version: 1.0
+      - name: cppcheck
+        run: cppcheck src -I include --error-exitcode=2
