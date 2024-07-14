@@ -21,9 +21,8 @@ void TractiveSystem::loop() {
     uint32_t prev = Task::millis();
     while (true) {
 
-
         // If the SDC opens, and the inverter is running, we want to shut down the inverter immediately.
-        if (inverter.state == InverterStates::Drive && (!sdcClosed() || battery.contactorState == ContactorStates::Error)) {
+        if ((inverter.state == InverterStates::Drive) && (!sdcClosed() || battery.contactorState == ContactorStates::Error)) {
             // vPortEnterCritical();
             inverter.stop();
             // vPortExitCritical();
@@ -37,7 +36,7 @@ void TractiveSystem::loop() {
 
         if (!sdcClosed()) {
             battery.openContactors();
-            if (state != TSStates::Idle || state != TSStates::Error) {
+            if (state != TSStates::Error) {
                 state = TSStates::Idle;
             }
         }
@@ -135,7 +134,7 @@ void TractiveSystem::DriveSequence() {
     // ADD RPM OR SPEED BUTTON CHECK
 
     // checkRegenButtonState(); // SHOULD NOT BE HERE
-    int16_t InverterRequestedTorque = 0.0;
+    int16_t InverterRequestedTorque = 0;
 
     float driveTorque = throttle.getTorqueRequestFraction();
     float brakeTorque = throttle.getBrakeRegenFraction();
@@ -149,13 +148,13 @@ void TractiveSystem::DriveSequence() {
     // }
 
     float requestedTorque = 0.0;
-    
+
     inRegenMode = false; // JUST FOR SAFETY JOSH
 
     if (inRegenMode) {
-        float speedScale = 0;
+        float speedScale = 0.0f;
         if (inverter.rpm < REGEN_DERATE_RPM && inverter.rpm > REGEN_MIN_RPM) {
-            float speedScale = std::clamp(map(inverter.rpm, REGEN_MIN_RPM, REGEN_DERATE_RPM, 1, 0), 0l, 1l);
+            speedScale = std::clamp(map(inverter.rpm, REGEN_MIN_RPM, REGEN_DERATE_RPM, 1, 0), 0L, 1L);
         } else if (inverter.rpm > REGEN_DERATE_RPM) {
             speedScale = 1.0;
         }
@@ -169,8 +168,6 @@ void TractiveSystem::DriveSequence() {
     } else {
         requestedTorque = max(0, driveTorque);
     }
-
-    
 
     InverterRequestedTorque = requestedTorque * INVERTER_MAXMIMUM_TORQUE_REQUEST;
 

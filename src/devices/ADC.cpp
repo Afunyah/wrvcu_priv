@@ -7,13 +7,14 @@
 
 namespace wrvcu {
 
-void ADC::init(uint8_t cspin, SPIClass* theSPI, bool crc_enable) {
-    MAX22530 adc_o(cspin, theSPI);
-    adc = &adc_o;
+ADC::ADC(uint8_t cspin, SPIClass* theSPI) :
+    adc(cspin, theSPI){};
+
+void ADC::init(bool crc_enable) {
     // adc->SPI_CRC(crc_enable); // prob
-    assert(crc_enable == crc_enable);
+    // assert(crc_enable == crc_enable);
     mutex.init();
-    if (!adc->begin(ADC_FREQUENCY)) {
+    if (!adc.begin(ADC_FREQUENCY)) {
         ERROR("ADC: Could not start ADC.");
     }
 }
@@ -21,7 +22,7 @@ void ADC::init(uint8_t cspin, SPIClass* theSPI, bool crc_enable) {
 int ADC::read(int channel) {
     uint16_t adc_ou = 0;
     mutex.take();
-    adc_ou = adc->readFiltered(channel);
+    adc_ou = adc.readFiltered(channel);
     mutex.give();
     return adc_ou;
 }

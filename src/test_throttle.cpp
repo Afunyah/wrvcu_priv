@@ -1,25 +1,23 @@
+#include "TractiveSystem.hpp"
 #include "arduino_freertos.h"
 #include "constants.hpp"
+#include "devices/throttleManager.hpp"
 #include "pins.hpp"
 #include "rtos/rtos.hpp"
-#include "TractiveSystem.hpp"
-#include "devices/throttleManager.hpp"
-#include "car.hpp"
-
 
 using namespace wrvcu;
 
 static Task taskA;
-// static TractiveSystem ts;
+static TractiveSystem ts;
 static ThrottleManager throttleT;
+static ADC adc(ADC_CS, &SPI);
 
 void test_throttle_task() {
     Task::delay(3000);
 
     ts.init();
 
-    ADC adc;
-    adc.init(ADC_CS, &SPI, false);
+    adc.init(false);
 
     throttleT.init(&adc);
 
@@ -27,7 +25,7 @@ void test_throttle_task() {
 
     while (true) {
         // Serial.print("APPS 1: ");
-        // Serial.print(throttleT.APPS1.read());        
+        // Serial.print(throttleT.APPS1.read());
         // Serial.print("\tAPPS 2: ");
         // Serial.println(throttleT.APPS2.read());
         // throttleT.APPS1.getSaturatedFraction();

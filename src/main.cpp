@@ -18,7 +18,7 @@ ThrottleManager throttle;
 CANController_T4<CAN1> can1;
 CANOpenHost canOpen;
 
-ADC adc;
+ADC adc(ADC_CS, &SPI);
 
 Display display;
 
@@ -59,7 +59,7 @@ void canLoggingLoop() {
 }
 
 void setup() {
-    Serial.begin(115200); // wait up to 2 seconds for serial connection
+    Serial.begin(115200);  // wait up to 2 seconds for serial connection
     Serial7.begin(115200); // For the display
 
     if (CrashReport) {
@@ -112,7 +112,7 @@ void setup() {
 
     battery.init((&can1));
 
-    adc.init(ADC_CS, &SPI, false);
+    adc.init(false);
     throttle.init(&adc);
 
     display.init();
