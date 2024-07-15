@@ -14,6 +14,7 @@ TractiveSystem ts;
 Inverter inverter;
 Battery battery;
 ThrottleManager throttle;
+IMU imu;
 
 CANController_T4<CAN1> can1;
 CANOpenHost canOpen;
@@ -96,15 +97,19 @@ void setup() {
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
 
+
+    // // ---------- start tasks ----------
+
+
     SD.begin(BUILTIN_SDCARD);
 
     setLogLevel(LogLocation::STDOUT, LogLevel::DEBUG);
     setLogLevel(LogLocation::FILE, LogLevel::DEBUG);
     setLogLevel(LogLocation::RADIO, LogLevel::DEBUG);
 
-    // // ---------- start tasks ----------
-
     loggingInit();
+
+    imu.init(&Wire2);
 
     can1.init(TASK_PRIORITY_DEFAULT + 3);
     canOpen.init((&can1));
@@ -115,6 +120,7 @@ void setup() {
     adc.init(false);
     throttle.init(&adc);
 
+
     display.init();
     ts.init();
 
@@ -122,7 +128,6 @@ void setup() {
 
     startScheduler();
 
-    // test_throttle_func();
 }
 
 void loop() {}
