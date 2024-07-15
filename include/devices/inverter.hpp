@@ -1,6 +1,6 @@
 #pragma once
 
-#include "can/CanOpenDevice.hpp"
+#include "can/CANOpenDevice.hpp"
 #include "rtos/mutex.hpp"
 
 namespace wrvcu {
