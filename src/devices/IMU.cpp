@@ -40,6 +40,10 @@ void IMU::read() {
     }
 }
 
+float IMU::getLonAcceleration(){
+    return accX;
+}
+
 void IMU::printData() {
     Serial.print("ACC X Y Z: ");
     Serial.print(accX);

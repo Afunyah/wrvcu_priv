@@ -39,6 +39,7 @@ public:
 
     void setR2DLED(bool state);
     void setBuzzer(bool state);
+    void setBrakeLight(bool state);
 
     float calculateMaxRegenTorque();
     float calculateMaxDriveTorque();

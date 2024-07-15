@@ -15,6 +15,8 @@ protected:
 
     float accX, accY, accZ, gyroX, gyroY, gyroZ;
 
+    float getLonAcceleration();
+
 public:
     void init(TwoWire* wire);
     void read();

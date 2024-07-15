@@ -103,3 +103,8 @@
 
 #define REGEN_MIN_RPM 250
 #define REGEN_DERATE_RPM 500
+
+#define REGEN_IMU_MIN_DECEL 1 // m/s^-2
+#define ACCEL_DUE_TO_GRAVITY 9.81 // m/s^-2
+
+#define BRAKELIGHT_REGEN_THRESHOLD -50 // Inverter units

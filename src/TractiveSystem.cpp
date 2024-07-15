@@ -159,6 +159,11 @@ void TractiveSystem::DriveSequence() {
             speedScale = 1.0;
         }
 
+        // float imu_deceleration = imu.getLonAcceleration();
+        // if (imu_deceleration > (-REGEN_IMU_MIN_DECEL / ACCEL_DUE_TO_GRAVITY)) {
+        //     driveTorque = max(0.0f, driveTorque); // APPS CANNOT REGEN
+        // }
+
         requestedTorque = driveTorque + brakeTorque;
         if (requestedTorque < 0.0) {
             // derate requested regen as we slow down
@@ -187,6 +192,12 @@ void TractiveSystem::DriveSequence() {
     if (InverterRequestedTorque < 0 && (!inRegenMode || inverter.rpm < REGEN_MIN_RPM)) {
         InverterRequestedTorque = 0;
     }
+
+    // if (InverterRequestedTorque < BRAKELIGHT_REGEN_THRESHOLD) {
+    //     setBrakeLight(true);
+    // } else {
+    //     setBrakeLight(false);
+    // }
 
     inverter.sendTorque(InverterRequestedTorque);
 }
@@ -233,6 +244,10 @@ void TractiveSystem::setR2DLED(bool out) {
 
 void TractiveSystem::setBuzzer(bool out) {
     digitalWrite(BUZZER_SIGNAL_PIN, (uint8_t)out);
+}
+
+void TractiveSystem::setBrakeLight(bool out) {
+    digitalWrite(BRAKE_LIGHT_PIN, (uint8_t)out);
 }
 
 TSStates TractiveSystem::getState() {
