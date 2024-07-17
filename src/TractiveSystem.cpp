@@ -43,6 +43,7 @@ void TractiveSystem::loop() {
 
         if (state != TSStates::Driving) {
             setR2DLED(false);
+            checkRegenButtonState();
         }
 
         mutex.take();
@@ -131,9 +132,6 @@ void TractiveSystem::DriveSequence() {
     //     state = TSStates::Error;
     // }
 
-    // ADD RPM OR SPEED BUTTON CHECK
-
-    // checkRegenButtonState(); // SHOULD NOT BE HERE
     int16_t InverterRequestedTorque = 0;
 
     float driveTorque = throttle.getTorqueRequestFraction();
@@ -158,11 +156,6 @@ void TractiveSystem::DriveSequence() {
         } else if (inverter.rpm > REGEN_DERATE_RPM) {
             speedScale = 1.0;
         }
-
-        // float imu_deceleration = imu.getLonAcceleration();
-        // if (imu_deceleration > (-REGEN_IMU_MIN_DECEL / ACCEL_DUE_TO_GRAVITY)) {
-        //     driveTorque = max(0.0f, driveTorque); // APPS CANNOT REGEN
-        // }
 
         requestedTorque = driveTorque + brakeTorque;
         if (requestedTorque < 0.0) {
@@ -193,11 +186,18 @@ void TractiveSystem::DriveSequence() {
         InverterRequestedTorque = 0;
     }
 
-    // if (InverterRequestedTorque < BRAKELIGHT_REGEN_THRESHOLD) {
+    // float imu_deceleration = imu.getLonAcceleration();
+    // if ((InverterRequestedTorque < BRAKELIGHT_REGEN_THRESHOLD) || (inRegenMode && imu_deceleration < (-REGEN_IMU_MIN_DECEL / ACCEL_DUE_TO_GRAVITY))) {
     //     setBrakeLight(true);
     // } else {
     //     setBrakeLight(false);
     // }
+
+    if (InverterRequestedTorque < BRAKELIGHT_REGEN_THRESHOLD) {
+        setBrakeLight(true);
+    } else {
+        setBrakeLight(false);
+    }
 
     inverter.sendTorque(InverterRequestedTorque);
 }
@@ -233,9 +233,7 @@ bool TractiveSystem::checkRegenButtonState() {
         inRegenMode = !inRegenMode;
     }
 
-    // inRegenMode = false;
     return pres;
-    // return false;
 }
 
 void TractiveSystem::setR2DLED(bool out) {

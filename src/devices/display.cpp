@@ -36,7 +36,6 @@ void Display::writeVar_128Bit(byte PacketAddress1, byte PacketAddress2, String D
     Serial7.write(0x3c); // packet tail
 }
 
-
 void Display::updateDisplay() {
     while (true) {
         // mutex.take();
@@ -44,17 +43,29 @@ void Display::updateDisplay() {
         writeVar_16Bit(POWER_ADDRESS, lowByte((uint16_t)battery.power), highByte((uint16_t)battery.power));
         writeVar_16Bit(REGEN_POWER_ADDRESS, 0, 0); // ToDo: put regen power here
         writeVar_16Bit(STATUS_ADDRESS, lowByte((uint16_t)ts.getState()), highByte((uint16_t)ts.getState()));
-        writeVar_16Bit(REGEN_ACTIVE_ADDRESS, 0, 0); // ToDo: put regen active here
-        writeVar_16Bit(REGEN_COLOUR_ADDRESS, 0, 0); // ToDo: switchcase for this with regen active
+        // writeVar_16Bit(REGEN_ACTIVE_ADDRESS, 0, 0); // ToDo: put regen active here
+        // writeVar_16Bit(REGEN_COLOUR_ADDRESS, 0, 0); // ToDo: switchcase for this with regen active
         writeVar_16Bit(CELL_MAX_TEMP_ADDRESS, lowByte((uint16_t)battery.cellMaxTemp), highByte((uint16_t)battery.cellMaxTemp));
         writeVar_16Bit(POST_FUSE_VOLTAGE_ADDRESS, lowByte((uint16_t)battery.postFuseVoltage), highByte((u_int16_t)battery.postFuseVoltage));
         writeVar_16Bit(TERMINAL_CURRENT_ADDRESS, lowByte((uint16_t)battery.terminalCurrent), highByte((u_int16_t)battery.terminalCurrent));
-        if (ts.sdcClosed()) {
-            writeVar_16Bit(SHUTDOWN_COLOUR_ADDRESS, lowByte((uint16_t)0x00ff00), highByte((uint16_t)0x00ff00));
-        } else {
-            writeVar_16Bit(SHUTDOWN_COLOUR_ADDRESS, lowByte((uint16_t)0xff0000), highByte((uint16_t)0xff0000));
+        // if (ts.sdcClosed()) {
+        //     writeVar_16Bit(SHUTDOWN_COLOUR_ADDRESS, lowByte((uint16_t)0x00ff00), highByte((uint16_t)0x00ff00));
+        // } else {
+        //     writeVar_16Bit(SHUTDOWN_COLOUR_ADDRESS, lowByte((uint16_t)0xff0000), highByte((uint16_t)0xff0000));
+        // }
+
+
+        uint16_t inv_rpm = inverter.rpm * 360 / 6000;
+
+        if (inv_rpm <= 0) {
+            inv_rpm = 0;
+        } else if (inv_rpm >= 359) {
+            inv_rpm = 360;
         }
-        writeVar_16Bit(SPEED_ADDRESS, lowByte((uint16_t)inverter.rpm), highByte((uint16_t)inverter.rpm));
+
+        writeVar_16Bit(SPEED_ADDRESS, lowByte((uint16_t)inv_rpm), highByte((uint16_t)inv_rpm));
+        writeVar_16Bit(0x1A, lowByte((uint16_t)inverter.rpm), highByte((uint16_t)inverter.rpm));
+
         writeVar_16Bit(IMD_FAULT_ADDRESS, 0, 0); // ToDo: implement
         writeVar_16Bit(BMS_FAULT_ADDRESS, 0, 0); // ToDo: implement
 
@@ -88,7 +99,11 @@ void Display::updateDisplay() {
 
         writeVar_128Bit(STATE_ADDRESS_1, STATE_ADDRESS_2, status_text);
 
-        // ToDo: Regen Text
+        if (ts.inRegenMode) {
+            writeVar_128Bit(REGEN_TEXT_ADDRESS_1, REGEN_TEXT_ADDRESS_2, "Enabled");
+        } else {
+            writeVar_128Bit(REGEN_TEXT_ADDRESS_1, REGEN_TEXT_ADDRESS_2, "Disabled");
+        }
 
         // SC Circuit Text
         if (ts.sdcClosed()) {

@@ -14,12 +14,11 @@ protected:
     Task task;
 
     float accX, accY, accZ, gyroX, gyroY, gyroZ;
-
-    float getLonAcceleration();
+    void printData();
 
 public:
     void init(TwoWire* wire);
     void read();
-    void printData();
+    float getLonAcceleration();
 };
 }
