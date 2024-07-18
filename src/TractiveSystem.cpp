@@ -21,8 +21,10 @@ void TractiveSystem::loop() {
     uint32_t prev = Task::millis();
     while (true) {
 
+        sdcIsClosed = checkSDC();
+
         // If the SDC opens, and the inverter is running, we want to shut down the inverter immediately.
-        if ((inverter.state == InverterStates::Drive) && (!sdcClosed() || battery.contactorState == ContactorStates::Error)) {
+        if ((inverter.state == InverterStates::Drive) && (!sdcIsClosed || battery.contactorState == ContactorStates::Error)) {
             // vPortEnterCritical();
             inverter.stop();
             // vPortExitCritical();
@@ -34,7 +36,7 @@ void TractiveSystem::loop() {
             state = TSStates::Error;
         }
 
-        if (!sdcClosed()) {
+        if (!sdcIsClosed) {
             battery.openContactors();
             if (state != TSStates::Error) {
                 state = TSStates::Idle;
@@ -50,7 +52,7 @@ void TractiveSystem::loop() {
 
         switch (state) {
         case TSStates::Idle:
-            if (battery.contactorState == ContactorStates::Ready && sdcClosed() && tsasPressed()) {
+            if (battery.contactorState == ContactorStates::Ready && sdcIsClosed && tsasPressed()) {
                 battery.closeContactors();
                 state = TSStates::CloseContactors;
                 contactorCloseStart = millis(); // record when we request contactors to close
@@ -59,10 +61,10 @@ void TractiveSystem::loop() {
             break;
 
         case TSStates::CloseContactors:
-            if (battery.contactorState == ContactorStates::Active && sdcClosed()) {
+            if (battery.contactorState == ContactorStates::Active && sdcIsClosed) {
                 state = TSStates::WaitR2D;
                 INFO("Waiting for R2D");
-            } else if (!sdcClosed()) {
+            } else if (!sdcIsClosed) {
                 battery.openContactors(); // set BMS back into 'ready' state
                 state = TSStates::Idle;
                 WARN("SDC opened while waiting for contactors to close.");
@@ -75,7 +77,7 @@ void TractiveSystem::loop() {
             break;
 
         case TSStates::WaitR2D:
-            if (battery.contactorState == ContactorStates::Active && sdcClosed() && throttle.brakesOn() && startPressed()) {
+            if (battery.contactorState == ContactorStates::Active && sdcIsClosed && throttle.brakesOn() && startPressed()) {
                 inverter.start();
                 state = TSStates::StartInverter;
                 INFO("Starting Inverter");
@@ -128,9 +130,12 @@ void TractiveSystem::loop() {
 }
 
 void TractiveSystem::DriveSequence() {
-    // if (throttle.isCriticalError()) {
-    //     state = TSStates::Error;
-    // }
+    if (throttle.isCriticalError()) {
+        inverter.sendTorque(0); // Maybe a ramp down here. Necessary only if no load
+        // inverter.stop();
+        state = TSStates::Error;
+        return;
+    }
 
     int16_t InverterRequestedTorque = 0;
 
@@ -147,7 +152,7 @@ void TractiveSystem::DriveSequence() {
 
     float requestedTorque = 0.0;
 
-    inRegenMode = false; // JUST FOR SAFETY JOSH
+    // inRegenMode = false; // JUST FOR SAFETY JOSH
 
     if (inRegenMode) {
         float speedScale = 0.0f;
@@ -169,11 +174,11 @@ void TractiveSystem::DriveSequence() {
 
     InverterRequestedTorque = requestedTorque * INVERTER_MAXMIMUM_TORQUE_REQUEST;
 
-    // if (inRegenMode && inverter.rpm > REGEN_MIN_RPM) {
-    //     InverterRequestedTorque = std::clamp(InverterRequestedTorque, maxRegenTorqueRequest, maxDriveTorqueRequest);
-    // } else {
-    //     InverterRequestedTorque = std::clamp(InverterRequestedTorque, (int16_t)0, maxDriveTorqueRequest);
-    // }
+    if (inRegenMode && inverter.rpm > REGEN_MIN_RPM) {
+        InverterRequestedTorque = std::clamp(InverterRequestedTorque, maxRegenTorqueRequest, maxDriveTorqueRequest);
+    } else {
+        InverterRequestedTorque = std::clamp(InverterRequestedTorque, (int16_t)0, maxDriveTorqueRequest);
+    }
 
     // Sanity checks (for safety)
     if (InverterRequestedTorque > INVERTER_MAXMIMUM_TORQUE_REQUEST) {
@@ -186,23 +191,23 @@ void TractiveSystem::DriveSequence() {
         InverterRequestedTorque = 0;
     }
 
-    // float imu_deceleration = imu.getLonAcceleration();
-    // if ((InverterRequestedTorque < BRAKELIGHT_REGEN_THRESHOLD) || (inRegenMode && imu_deceleration < (-REGEN_IMU_MIN_DECEL / ACCEL_DUE_TO_GRAVITY))) {
-    //     setBrakeLight(true);
-    // } else {
-    //     setBrakeLight(false);
-    // }
-
-    if (InverterRequestedTorque < BRAKELIGHT_REGEN_THRESHOLD) {
+    float imu_deceleration = imu.getLonAcceleration();
+    if ((InverterRequestedTorque < BRAKELIGHT_REGEN_THRESHOLD) || (inRegenMode && imu_deceleration < (-REGEN_IMU_MIN_DECEL / ACCEL_DUE_TO_GRAVITY))) {
         setBrakeLight(true);
     } else {
         setBrakeLight(false);
     }
 
+    // if (InverterRequestedTorque < BRAKELIGHT_REGEN_THRESHOLD) {
+    //     setBrakeLight(true);
+    // } else {
+    //     setBrakeLight(false);
+    // }
+
     inverter.sendTorque(InverterRequestedTorque);
 }
 
-bool TractiveSystem::sdcClosed() {
+bool TractiveSystem::checkSDC() {
     static bool lastSc = false;
 
     bool s = digitalRead(SCMON_PIN);
@@ -214,6 +219,10 @@ bool TractiveSystem::sdcClosed() {
     }
     lastSc = s;
     return s;
+}
+
+bool TractiveSystem::getSDCstatus() {
+    return sdcIsClosed;
 }
 
 bool TractiveSystem::tsasPressed() {

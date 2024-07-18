@@ -1,6 +1,8 @@
 #include "devices/throttleManager.hpp"
 #include "car.hpp"
 #include "constants.hpp"
+#include "logging/log.hpp"
+
 
 namespace wrvcu {
 
@@ -84,19 +86,19 @@ float ThrottleManager::getTorqueRequestFraction() {
     checkHardBrake(); // Sets HardBrake Error
 
     if (APPSDisconnectedError) {
-        Serial.println("APPS Disconnected Error");
+        ERROR("APPS Disconnected Error");
     }
     if (brakeDisconnectedError) {
-        Serial.println("Brake Disconnected Error");
+        ERROR("Brake Disconnected Error");
     }
     if (APPSPlausibilityError) {
-        Serial.println("APPS Plausibility Error");
+        ERROR("APPS Plausibility Error");
     }
     if (brakePlausibilityError) {
-        Serial.println("Brake Plausibility Error");
+        ERROR("Brake Plausibility Error");
     }
     if (hardBrakeError) {
-        Serial.println("Hard Brake Error");
+        ERROR("Hard Brake Error");
     }
 
     float return_val = 0.0;

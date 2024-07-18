@@ -106,13 +106,13 @@ void Display::updateDisplay() {
         }
 
         // SC Circuit Text
-        if (ts.sdcClosed()) {
+        if (ts.getSDCstatus()) {
             writeVar_128Bit(SHUTDOWN_TEXT_ADDRESS_1, SHUTDOWN_TEXT_ADDRESS_2, "Closed");
         } else {
             writeVar_128Bit(SHUTDOWN_TEXT_ADDRESS_1, SHUTDOWN_TEXT_ADDRESS_2, "Open");
         }
         // mutex.give();
-        Task::delay(50);
+        Task::delay(15);
     }
 }
 }

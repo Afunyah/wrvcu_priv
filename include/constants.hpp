@@ -41,8 +41,8 @@
 
 // TODO: These could go in dynamic configuration.
 #define CONTACTOR_CLOSE_TIMEOUT 10000 // ms, the maximum time to wait for contactors to close
-#define APPS_TIMEOUT 300              // ms, maximum APPS implausibility length
-#define BRAKE_TIMEOUT 300
+#define APPS_TIMEOUT 250              // ms, maximum APPS implausibility length
+#define BRAKE_TIMEOUT 250
 
 #define APPS_PLAUSIBILITY_FRACTION 0.3
 #define BRAKE_PLAUSIBILITY_FRACTION 0.3
@@ -104,7 +104,7 @@
 #define REGEN_MIN_RPM 250
 #define REGEN_DERATE_RPM 500
 
-#define REGEN_IMU_MIN_DECEL 1 // m/s^-2
+#define REGEN_IMU_MIN_DECEL 3 // m/s^-2
 #define ACCEL_DUE_TO_GRAVITY 9.81 // m/s^-2
 
 #define BRAKELIGHT_REGEN_THRESHOLD -50 // Inverter units

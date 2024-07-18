@@ -38,7 +38,7 @@ void canLoggingLoop() {
         vcu_log_vcu_log_t log_msg;
 
         log_msg.vcu_state = static_cast<int>(ts.getState());
-        log_msg.scmon = ts.sdcClosed();
+        log_msg.scmon = ts.checkSDC();
         log_msg.apps_disconnect = throttle.APPSDisconnectedError;
         log_msg.apps_plausibility = throttle.APPSPlausibilityError;
         log_msg.brake_disconnect = throttle.brakeDisconnectedError;

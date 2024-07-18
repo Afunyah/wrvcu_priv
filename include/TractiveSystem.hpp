@@ -26,13 +26,15 @@ protected:
     Mutex mutex;
     Task task;
 
+    bool sdcIsClosed;
+
 public:
     bool inRegenMode = false;
 
     void init();
     void loop();
 
-    bool sdcClosed();
+    bool checkSDC();
     bool tsasPressed();
     bool startPressed();
     bool checkRegenButtonState();
@@ -47,6 +49,8 @@ public:
     void DriveSequence();
 
     TSStates getState();
+
+    bool getSDCstatus();
 
     void test_init();
     void test_loop();
