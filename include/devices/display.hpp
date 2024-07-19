@@ -1,21 +1,15 @@
 // 16-bit Variables
-#define SOC_ADDRESS 0x02
-#define POWER_ADDRESS 0x04
-#define REGEN_POWER_ADDRESS 0x06 // Regen Power
-#define STATUS_ADDRESS 0x08      // Status Icon
-#define REGEN_ACTIVE_ADDRESS 0x0A
-#define REGEN_COLOUR_ADDRESS 0x0C
-#define CELL_MAX_TEMP_ADDRESS 0x0E
-#define POST_FUSE_VOLTAGE_ADDRESS 0x10
-#define TERMINAL_CURRENT_ADDRESS 0x12
-#define SHUTDOWN_COLOUR_ADDRESS 0x14
-#define SPEED_ADDRESS 0x16
-#define IMD_FAULT_ADDRESS 0x00
-#define BMS_FAULT_ADDRESS 0x18
+#define SOC_ADDRESS 0x02           // %
+#define STATUS_ADDRESS 0x08        // Status Icon
+#define REGEN_ACTIVE_ADDRESS 0x0A  // Regen Icon
+#define CELL_MAX_TEMP_ADDRESS 0x0E // deg C 0-60
+#define SPEED_ADDRESS 0x16         // Dial - scaled to 360
+#define SPEED_ADDRESS_2 0x1A       // Raw RPM value
+
+#define DISTANCE_ADDRESS 0x1C      // km
+#define RACE_PROGRESS_ADDRESS 0x1E // %
 
 // 128-bit String Variables
-#define LOG_ADDRESS_1 0x01
-#define LOG_ADDRESS_2 0x00
 #define STATE_ADDRESS_1 0x00
 #define STATE_ADDRESS_2 0x80
 #define REGEN_TEXT_ADDRESS_1 0x01
