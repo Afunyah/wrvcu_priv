@@ -20,7 +20,7 @@ void TractiveSystem::init() {
 void TractiveSystem::loop() {
     uint32_t prev = Task::millis();
     while (true) {
-
+        // throttle.getTorqueRequestFraction();
         sdcIsClosed = checkSDC();
 
         // If the SDC opens, and the inverter is running, we want to shut down the inverter immediately.
@@ -121,6 +121,8 @@ void TractiveSystem::loop() {
 
         if (state == TSStates::Driving) {
             DriveSequence();
+        } else {
+            inverter.sendTorque(0);
         }
 
         mutex.give();
@@ -130,81 +132,79 @@ void TractiveSystem::loop() {
 }
 
 void TractiveSystem::DriveSequence() {
+    int16_t InverterRequestedTorque = 0;
     if (throttle.isCriticalError()) {
         inverter.sendTorque(0); // Maybe a ramp down here. Necessary only if no load
-        // inverter.stop();
-        state = TSStates::Error;
-        return;
-    }
+    } else {
 
-    int16_t InverterRequestedTorque = 0;
+        float driveTorque = throttle.getTorqueRequestFraction();
+        float brakeTorque = throttle.getBrakeRegenFraction();
 
-    float driveTorque = throttle.getTorqueRequestFraction();
-    float brakeTorque = throttle.getBrakeRegenFraction();
+        int16_t maxDriveTorqueRequest = calculateMaxDriveTorque() / INVERTER_NM_PER_UNIT; // Positive
+        int16_t maxRegenTorqueRequest = calculateMaxRegenTorque() / INVERTER_NM_PER_UNIT; // Negative
 
-    int16_t maxDriveTorqueRequest = calculateMaxDriveTorque() / INVERTER_NM_PER_UNIT; // Positive
-    int16_t maxRegenTorqueRequest = calculateMaxRegenTorque() / INVERTER_NM_PER_UNIT; // Negative
+        // if (maxDriveTorqueRequest < 0.0 || maxRegenTorqueRequest > 0.0) {
+        //     ERROR("max drive or regen torque calculation was invalid!");
+        //     state = TSStates::Error;
+        // }
 
-    // if (maxDriveTorqueRequest < 0.0 || maxRegenTorqueRequest > 0.0) {
-    //     ERROR("max drive or regen torque calculation was invalid!");
-    //     state = TSStates::Error;
-    // }
+        float requestedTorque = 0.0;
 
-    float requestedTorque = 0.0;
+        // inRegenMode = false; // JUST FOR SAFETY JOSH
 
-    // inRegenMode = false; // JUST FOR SAFETY JOSH
+        if (inRegenMode) {
+            float speedScale = 0.0f;
+            if (inverter.rpm < REGEN_DERATE_RPM && inverter.rpm > REGEN_MIN_RPM) {
+                speedScale = std::clamp(map(inverter.rpm, REGEN_MIN_RPM, REGEN_DERATE_RPM, 1, 0), 0L, 1L);
+            } else if (inverter.rpm > REGEN_DERATE_RPM) {
+                speedScale = 1.0;
+            }
 
-    if (inRegenMode) {
-        float speedScale = 0.0f;
-        if (inverter.rpm < REGEN_DERATE_RPM && inverter.rpm > REGEN_MIN_RPM) {
-            speedScale = std::clamp(map(inverter.rpm, REGEN_MIN_RPM, REGEN_DERATE_RPM, 1, 0), 0L, 1L);
-        } else if (inverter.rpm > REGEN_DERATE_RPM) {
-            speedScale = 1.0;
+            requestedTorque = driveTorque + brakeTorque;
+            if (requestedTorque < 0.0) {
+                // derate requested regen as we slow down
+                requestedTorque *= speedScale;
+            }
+
+        } else {
+            requestedTorque = max(0, driveTorque);
         }
 
-        requestedTorque = driveTorque + brakeTorque;
-        if (requestedTorque < 0.0) {
-            // derate requested regen as we slow down
-            requestedTorque *= speedScale;
+        InverterRequestedTorque = requestedTorque * INVERTER_MAXMIMUM_TORQUE_REQUEST;
+
+        if (inRegenMode && inverter.rpm > REGEN_MIN_RPM) {
+            InverterRequestedTorque = std::clamp(InverterRequestedTorque, maxRegenTorqueRequest, maxDriveTorqueRequest);
+        } else {
+            InverterRequestedTorque = std::clamp(InverterRequestedTorque, (int16_t)0, maxDriveTorqueRequest);
         }
 
-    } else {
-        requestedTorque = max(0, driveTorque);
-    }
+        // Sanity checks (for safety)
+        if (InverterRequestedTorque > INVERTER_MAXMIMUM_TORQUE_REQUEST) {
+            InverterRequestedTorque = INVERTER_MAXMIMUM_TORQUE_REQUEST;
+        }
+        if (InverterRequestedTorque < INVERTER_MINIMUM_TORQUE_REQUEST) {
+            InverterRequestedTorque = INVERTER_MINIMUM_TORQUE_REQUEST;
+        }
+        if (InverterRequestedTorque < 0 && (!inRegenMode || inverter.rpm < REGEN_MIN_RPM)) {
+            InverterRequestedTorque = 0;
+        }
 
-    InverterRequestedTorque = requestedTorque * INVERTER_MAXMIMUM_TORQUE_REQUEST;
+        float imu_deceleration = imu.getLonAcceleration();
+        if ((InverterRequestedTorque < BRAKELIGHT_REGEN_THRESHOLD && inRegenMode) || (inRegenMode && imu_deceleration < (-REGEN_IMU_MIN_DECEL / ACCEL_DUE_TO_GRAVITY))) {
+            setBrakeLight(true);
+        } else {
+            setBrakeLight(false);
+        }
 
-    if (inRegenMode && inverter.rpm > REGEN_MIN_RPM) {
-        InverterRequestedTorque = std::clamp(InverterRequestedTorque, maxRegenTorqueRequest, maxDriveTorqueRequest);
-    } else {
-        InverterRequestedTorque = std::clamp(InverterRequestedTorque, (int16_t)0, maxDriveTorqueRequest);
-    }
+        // if (InverterRequestedTorque < BRAKELIGHT_REGEN_THRESHOLD) {
+        //     setBrakeLight(true);
+        // } else {
+        //     setBrakeLight(false);
+        // }
 
-    // Sanity checks (for safety)
-    if (InverterRequestedTorque > INVERTER_MAXMIMUM_TORQUE_REQUEST) {
-        InverterRequestedTorque = INVERTER_MAXMIMUM_TORQUE_REQUEST;
+        inverter.sendTorque(InverterRequestedTorque);
     }
-    if (InverterRequestedTorque < INVERTER_MINIMUM_TORQUE_REQUEST) {
-        InverterRequestedTorque = INVERTER_MINIMUM_TORQUE_REQUEST;
-    }
-    if (InverterRequestedTorque < 0 && (!inRegenMode || inverter.rpm < REGEN_MIN_RPM)) {
-        InverterRequestedTorque = 0;
-    }
-
-    float imu_deceleration = imu.getLonAcceleration();
-    if ((InverterRequestedTorque < BRAKELIGHT_REGEN_THRESHOLD) || (inRegenMode && imu_deceleration < (-REGEN_IMU_MIN_DECEL / ACCEL_DUE_TO_GRAVITY))) {
-        setBrakeLight(true);
-    } else {
-        setBrakeLight(false);
-    }
-
-    // if (InverterRequestedTorque < BRAKELIGHT_REGEN_THRESHOLD) {
-    //     setBrakeLight(true);
-    // } else {
-    //     setBrakeLight(false);
-    // }
-
-    inverter.sendTorque(InverterRequestedTorque);
+    Serial.println(InverterRequestedTorque);
 }
 
 bool TractiveSystem::checkSDC() {

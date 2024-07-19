@@ -3,7 +3,6 @@
 #include "constants.hpp"
 #include "logging/log.hpp"
 
-
 namespace wrvcu {
 
 void ThrottleManager::init(ADC* adc) {
@@ -41,23 +40,23 @@ void ThrottleManager::checkAPPSPlausibility() {
 
 void ThrottleManager::checkHardBrake() {
     float throttleFraction = getThrottleFraction();
-    if (brakesOn() && throttleFraction > HARD_BRAKE_APPS_LIMIT && !hardBrakeError) {
-        currentHardBrakeMillis = Task::millis();
+    currentHardBrakeMillis = Task::millis();
 
+    if (hardBrakeTimerStarted && (currentHardBrakeMillis - prevHardBrakeMillis >= BRAKE_TIMEOUT)) {
+        hardBrakeError = true;
+        hardBrakeTimerStarted = false;
+    }
+
+    if (brakesOn() && throttleFraction > HARD_BRAKE_APPS_LIMIT && !hardBrakeError) {
         if (!hardBrakeTimerStarted) {
             prevHardBrakeMillis = currentHardBrakeMillis;
             hardBrakeTimerStarted = true;
         }
-
-        if (currentHardBrakeMillis - prevHardBrakeMillis >= BRAKE_TIMEOUT) {
-            hardBrakeError = true;
-            hardBrakeTimerStarted = false;
-        }
-    } else if (hardBrakeTimerStarted && !hardBrakeError) {
-        hardBrakeTimerStarted = false;
-    } else if (throttleFraction <= HARD_BRAKE_APPS_RELEASE) {
-        hardBrakeError = false;
-        hardBrakeTimerStarted = false;
+    } else if (hardBrakeTimerStarted && !hardBrakeError && isHardBrakeReleased()) {
+        hardBrakeTimerStarted = false; // Reset timer, no error is set here
+    } else if (throttleFraction <= HARD_BRAKE_APPS_RELEASE && isHardBrakeReleased()) {
+        hardBrakeError = false;        // Reset error
+        hardBrakeTimerStarted = false; // Reset timer
     }
 }
 
@@ -166,7 +165,22 @@ float ThrottleManager::getBrakeRegenFraction() {
 }
 
 int ThrottleManager::getBrakePressure1() {
-    return adc.read(BRAKEPRESSURE1_CHANNEL);
+    uint16_t val = adc.read(BRAKEPRESSURE1_CHANNEL);
+
+    if (BRAKE_USE_SMOOTH) {
+        brake_1_window_total = brake_1_window_total - brake_1_window_array[brake_1_window_index]; // Remove earliest reading from sum
+        brake_1_window_array[brake_1_window_index] = val;                                         // Add reading to the array
+        brake_1_window_total = brake_1_window_total + brake_1_window_array[brake_1_window_index]; // Add reading to sum
+        brake_1_window_index = brake_1_window_index + 1;                                          // go to the next position in the array
+
+        if (brake_1_window_index >= BRAKE_WINDOW) {
+            brake_1_window_index = 0;
+        }
+        uint16_t smooth_val = brake_1_window_total / BRAKE_WINDOW;
+        val = smooth_val;
+    }
+
+    return val;
 }
 
 int ThrottleManager::getBrakePressure2() {
@@ -175,6 +189,10 @@ int ThrottleManager::getBrakePressure2() {
 
 bool ThrottleManager::brakesOn() {
     return getBrakePressure1() > BRAKEPRESSURE1_MIN_THRESHOLD;
+}
+
+bool ThrottleManager::isHardBrakeReleased() {
+    return getBrakePressure1() < HARDBRAKE_RELEASE_THRESHOLD;
 }
 
 }

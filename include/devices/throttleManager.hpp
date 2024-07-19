@@ -20,9 +20,14 @@ protected:
 
     float lastAPPSFraction = 0;
 
+    uint16_t brake_1_window_total = 0;
+    int brake_1_window_index = 0;               // the index of the current reading
+    uint16_t brake_1_window_array[APPS_WINDOW]; // the window_array from the analog input
+
     void checkAPPSConnected();
     void checkAPPSPlausibility();
     void checkHardBrake();
+    bool isHardBrakeReleased();
 
     // void checkBrakesPlausibility();
 
