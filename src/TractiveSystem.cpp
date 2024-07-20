@@ -138,7 +138,7 @@ void TractiveSystem::DriveSequence() {
     } else {
 
         float driveTorque = throttle.getTorqueRequestFraction();
-        // float brakeTorque = throttle.getBrakeRegenFraction();
+        float brakeTorque = throttle.getBrakeRegenFraction();
 
         // int16_t maxDriveTorqueRequest = calculateMaxDriveTorque() / INVERTER_NM_PER_UNIT; // Positive
         // int16_t maxRegenTorqueRequest = calculateMaxRegenTorque() / INVERTER_NM_PER_UNIT; // Negative
@@ -152,23 +152,23 @@ void TractiveSystem::DriveSequence() {
 
         inRegenMode = false; // JUST FOR SAFETY JOSH
 
-        // if (inRegenMode) {
-        //     float speedScale = 0.0f;
-        //     if (inverter.rpm < REGEN_DERATE_RPM && inverter.rpm > REGEN_MIN_RPM) {
-        //         speedScale = std::clamp(map(inverter.rpm, REGEN_MIN_RPM, REGEN_DERATE_RPM, 1, 0), 0L, 1L);
-        //     } else if (inverter.rpm > REGEN_DERATE_RPM) {
-        //         speedScale = 1.0;
-        //     }
+        if (inRegenMode) {
+            float speedScale = 0.0f;
+            if (inverter.rpm < REGEN_DERATE_RPM && inverter.rpm > REGEN_MIN_RPM) {
+                speedScale = std::clamp(map(inverter.rpm, REGEN_MIN_RPM, REGEN_DERATE_RPM, 1, 0), 0L, 1L);
+            } else if (inverter.rpm > REGEN_DERATE_RPM) {
+                speedScale = 1.0;
+            }
 
-        //     requestedTorque = driveTorque + brakeTorque;
-        //     if (requestedTorque < 0.0) {
-        //         // derate requested regen as we slow down
-        //         requestedTorque *= speedScale;
-        //     }
+            requestedTorque = driveTorque + brakeTorque;
+            if (requestedTorque < 0.0) {
+                // derate requested regen as we slow down
+                requestedTorque *= speedScale;
+            }
 
-        // } else {
-        //     requestedTorque = max(0, driveTorque);
-        // }
+        } else {
+            requestedTorque = max(0, driveTorque);
+        }
 
         InverterRequestedTorque = requestedTorque * INVERTER_MAXMIMUM_TORQUE_REQUEST;
 
