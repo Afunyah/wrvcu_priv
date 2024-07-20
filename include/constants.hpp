@@ -38,7 +38,7 @@
 // Number between 0 and 1000
 #define INVERTER_MAXMIMUM_TORQUE_REQUEST 900
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#define INVERTER_MINIMUM_TORQUE_REQUEST -200
+#define INVERTER_MINIMUM_TORQUE_REQUEST 0
 
 #define INVERTER_NM_PER_UNIT 0.14
 
