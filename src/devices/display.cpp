@@ -43,6 +43,8 @@ void Display::updateDisplay() {
         writeVar_16Bit(STATUS_ADDRESS, lowByte((uint16_t)ts.getState()), highByte((uint16_t)ts.getState()));
         writeVar_16Bit(REGEN_ACTIVE_ADDRESS, lowByte((uint16_t)ts.inRegenMode), highByte((uint16_t)ts.inRegenMode));
         writeVar_16Bit(CELL_MAX_TEMP_ADDRESS, lowByte((uint16_t)battery.cellMaxTemp), highByte((uint16_t)battery.cellMaxTemp));
+        writeVar_16Bit(CELL_MAX_VOLTAGE_ADDRESS, lowByte((uint16_t)battery.cellMaxVoltage), highByte((uint16_t)battery.cellMaxVoltage));
+        writeVar_16Bit(CELL_MIN_VOLTAGE_ADDRESS, lowByte((uint16_t)battery.cellMinVoltage), highByte((uint16_t)battery.cellMinVoltage));
 
         // float dataloggerDistance = datalogger.getDistanceInKM();
         // int raceProgress = map(std::clamp((int)(MAX_ENDUR_DIST_KM - dataloggerDistance), 0, MAX_ENDUR_DIST_KM), 0, MAX_ENDUR_DIST_KM, 0, 100);

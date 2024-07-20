@@ -3,8 +3,10 @@
 #define STATUS_ADDRESS 0x08        // Status Icon
 #define REGEN_ACTIVE_ADDRESS 0x0A  // Regen Icon
 #define CELL_MAX_TEMP_ADDRESS 0x0E // deg C 0-60
-#define SPEED_ADDRESS 0x16         // Dial - scaled to 360
-#define SPEED_ADDRESS_2 0x1A       // Raw RPM value
+#define CELL_MAX_VOLTAGE_ADDRESS 0x10
+#define CELL_MIN_VOLTAGE_ADDRESS 0x12
+#define SPEED_ADDRESS 0x16   // Dial - scaled to 360
+#define SPEED_ADDRESS_2 0x1A // Raw RPM value
 
 #define DISTANCE_ADDRESS 0x1C      // km
 #define RACE_PROGRESS_ADDRESS 0x1E // %
