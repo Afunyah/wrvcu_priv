@@ -40,36 +40,22 @@ void Display::updateDisplay() {
     while (true) {
         // mutex.take();
         writeVar_16Bit(SOC_ADDRESS, lowByte((uint16_t)battery.SoC), highByte((uint16_t)battery.SoC));
-        writeVar_16Bit(POWER_ADDRESS, lowByte((uint16_t)battery.power), highByte((uint16_t)battery.power));
-        writeVar_16Bit(REGEN_POWER_ADDRESS, 0, 0); // ToDo: put regen power here
         writeVar_16Bit(STATUS_ADDRESS, lowByte((uint16_t)ts.getState()), highByte((uint16_t)ts.getState()));
-        // writeVar_16Bit(REGEN_ACTIVE_ADDRESS, 0, 0); // ToDo: put regen active here
-        // writeVar_16Bit(REGEN_COLOUR_ADDRESS, 0, 0); // ToDo: switchcase for this with regen active
+        writeVar_16Bit(REGEN_ACTIVE_ADDRESS, lowByte((uint16_t)ts.inRegenMode), highByte((uint16_t)ts.inRegenMode));
         writeVar_16Bit(CELL_MAX_TEMP_ADDRESS, lowByte((uint16_t)battery.cellMaxTemp), highByte((uint16_t)battery.cellMaxTemp));
-        writeVar_16Bit(POST_FUSE_VOLTAGE_ADDRESS, lowByte((uint16_t)battery.postFuseVoltage), highByte((u_int16_t)battery.postFuseVoltage));
-        writeVar_16Bit(TERMINAL_CURRENT_ADDRESS, lowByte((uint16_t)battery.terminalCurrent), highByte((u_int16_t)battery.terminalCurrent));
-        // if (ts.sdcClosed()) {
-        //     writeVar_16Bit(SHUTDOWN_COLOUR_ADDRESS, lowByte((uint16_t)0x00ff00), highByte((uint16_t)0x00ff00));
-        // } else {
-        //     writeVar_16Bit(SHUTDOWN_COLOUR_ADDRESS, lowByte((uint16_t)0xff0000), highByte((uint16_t)0xff0000));
-        // }
+        writeVar_16Bit(CELL_MAX_VOLTAGE_ADDRESS, lowByte((uint16_t)battery.cellMaxVoltage), highByte((uint16_t)battery.cellMaxVoltage));
+        writeVar_16Bit(CELL_MIN_VOLTAGE_ADDRESS, lowByte((uint16_t)battery.cellMinVoltage), highByte((uint16_t)battery.cellMinVoltage));
 
+        // float dataloggerDistance = datalogger.getDistanceInKM();
+        // int raceProgress = map(std::clamp((int)(MAX_ENDUR_DIST_KM - dataloggerDistance), 0, MAX_ENDUR_DIST_KM), 0, MAX_ENDUR_DIST_KM, 0, 100);
 
-        uint16_t inv_rpm = inverter.rpm * 360 / 6000;
+        // writeVar_16Bit(DISTANCE_ADDRESS, lowByte((uint16_t)dataloggerDistance), highByte((uint16_t)dataloggerDistance));
+        // writeVar_16Bit(RACE_PROGRESS_ADDRESS, lowByte((uint16_t)raceProgress), highByte((uint16_t)raceProgress));
 
-        if (inv_rpm <= 0) {
-            inv_rpm = 0;
-        } else if (inv_rpm >= 359) {
-            inv_rpm = 360;
-        }
+        int inverter_rpm_dial = map(std::clamp((int)inverter.rpm, 0, MAX_RPM), 0, MAX_RPM, 0, 360);
 
-        writeVar_16Bit(SPEED_ADDRESS, lowByte((uint16_t)inv_rpm), highByte((uint16_t)inv_rpm));
-        writeVar_16Bit(0x1A, lowByte((uint16_t)inverter.rpm), highByte((uint16_t)inverter.rpm));
-
-        writeVar_16Bit(IMD_FAULT_ADDRESS, 0, 0); // ToDo: implement
-        writeVar_16Bit(BMS_FAULT_ADDRESS, 0, 0); // ToDo: implement
-
-        // ToDo: Dash log messages
+        writeVar_16Bit(SPEED_ADDRESS, lowByte((uint16_t)inverter_rpm_dial), highByte((uint16_t)inverter_rpm_dial));
+        writeVar_16Bit(SPEED_ADDRESS_2, lowByte((uint16_t)inverter.rpm), highByte((uint16_t)inverter.rpm));
 
         // VCU State Text
         String status_text;
@@ -96,7 +82,6 @@ void Display::updateDisplay() {
             status_text = "ERROR";
             break;
         }
-
         writeVar_128Bit(STATE_ADDRESS_1, STATE_ADDRESS_2, status_text);
 
         if (ts.inRegenMode) {
@@ -111,6 +96,7 @@ void Display::updateDisplay() {
         } else {
             writeVar_128Bit(SHUTDOWN_TEXT_ADDRESS_1, SHUTDOWN_TEXT_ADDRESS_2, "Open");
         }
+
         // mutex.give();
         Task::delay(15);
     }
